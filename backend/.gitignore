@@ -1,0 +1,50 @@
+# Environnement virtuel
+bnbEnv/
+venv/
+env/
+ENV/
+.venv/
+
+# Fichier d’environnement
+.env
+.env.*
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers de log
+*.log
+
+# SQLite (base de données locale)
+db.sqlite3
+
+# Fichiers Django
+*.pot
+*.pyc
+
+# Migrations
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+*/migrations/*.db
+
+# Fichiers d’IDE
+.vscode/
+.idea/
+
+# Mac / Windows
+.DS_Store
+Thumbs.db
+
+# Fichiers statiques collectés
+staticfiles/
+static/
+
+# Médias uploadés
+media/
+
+# Cache de pip
+pip-wheel-metadata/
