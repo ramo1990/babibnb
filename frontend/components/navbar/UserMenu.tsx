@@ -4,9 +4,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Avatar from '../Avatar'
 import MenuItem from './MenuItem'
 import { MenuIcon } from 'lucide-react'
+import useRegisterModal from '@/lib/useRegisterModal'
 
 
 const UserMenu = () => {
+    const registerModal = useRegisterModal()
     const [isOpen, setIsOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
     // renvoie la valeur opposée de la valeur actuelle; dans ce cas true
@@ -53,7 +55,7 @@ const UserMenu = () => {
                             label= 'Login'
                         />
                         <MenuItem 
-                            onClick={() => {}}
+                            onClick={registerModal.onOpen}
                             label= 'Sign up'
                         />
                     </div>
