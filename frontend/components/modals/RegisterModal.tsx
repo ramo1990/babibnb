@@ -11,6 +11,7 @@ import Input from '../inputs/Input'
 import { toast } from 'react-hot-toast'
 import { Button } from '../ui/button'
 import { FaFacebook } from 'react-icons/fa'
+import { api } from '@/lib/axios'
 
 
 interface RegisterFormValues {
@@ -30,19 +31,20 @@ const RegisterModal = () => {
         password: '',
     }})
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
         setIsLoading(true);
 
-        axios.post('/api/register', data)
-        .then(() => {
+        api.post('/register', data)
+        .then((response) => {
+            console.log('Inscription réussie:', response.data)
             registerModal.onClose(); // ferme la modal si succès
-        })
-        .catch((error) => {
+            toast.success('Account created successfully')
+        }) 
+        .catch((error) => { 
+            console.error(' Erreur inscription:', error.response?.data || error)
             toast.error('Something went wrong'); // affiche une erreur
-        })
-        .finally(() => {
-            setIsLoading(false); // réactive les champs/boutons
-        })
+        }) 
+        .finally(() => {setIsLoading(false); }) // réactive les champs/boutons
     }
     // Contenu du corps
     const bodyContent = (
