@@ -16,8 +16,10 @@ const useAuthStore = create<AuthStore>((set) => ({
   setUser: (user) => set({ currentUser: user }),
 
   logout: () => {
-    localStorage.removeItem('access')
-    localStorage.removeItem('refresh')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access')
+      localStorage.removeItem('refresh')
+    }
     set({ currentUser: null })
   },
 }))

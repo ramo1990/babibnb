@@ -11,10 +11,11 @@ import { toast } from 'react-hot-toast'
 import { Button } from '../ui/button'
 import { FaFacebook } from 'react-icons/fa'
 import { api } from '@/lib/axios'
-import { RegisterFormValues } from '@/lib/types'
+import { LoginFormValues } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
 import { useRouter } from 'next/navigation'
 import useAuthStore from '@/lib/useAuthStore'
+import { getCurrentUser } from '@/lib/getCurrentUser'
 
 
 // TODO: migrer Input vers une version shadcn/ui
@@ -24,31 +25,26 @@ const LoginModal = () => {
     const registerModal = useRegisterModal();
     const loginModal = useLoginModal()
     const [isLoading, setIsLoading] = useState(false)
-    const {register, handleSubmit, formState: {errors}} = useForm<RegisterFormValues>({defaultValues: {
-        // name: '',
+    const {register, handleSubmit, formState: {errors}} = useForm<LoginFormValues>({defaultValues: {
         email: '',
         password: '',
     }})
 
-    const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
         try {
             setIsLoading(true);
 
             // Login
             const tokensRes = await api.post('/login/', { email: data.email, password: data.password })
             const {access, refresh} = tokensRes.data
-            localStorage.setItem('access', access)
-            localStorage.setItem('refresh', refresh)
+            if (typeof window !== "undefined") {
+                localStorage.setItem('access', access)
+                localStorage.setItem('refresh', refresh)
+            }
 
             // Récupérer l'utilisateur courant
-            const meRes = await api.get('/me/', {
-                headers: {
-                Authorization: `Bearer ${access}`,
-                },
-            })
-
-            // Mettre à jour Zustand
-            useAuthStore.getState().setUser(meRes.data)
+            const user = await getCurrentUser()
+            useAuthStore.getState().setUser(user)
 
             toast.success('Logged in successfully')
             loginModal.onClose() // ferme la modal si succès
@@ -80,11 +76,14 @@ const LoginModal = () => {
             <Button variant="outline" label='Continue with Facebook' icon={FaFacebook} onClick={() => {}}/>
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>
-                    Already have an account? 
+                    Don't have an account? 
                     <div 
-                    onClick={registerModal.onClose}
+                    onClick={() => {
+                        loginModal.onClose()
+                        registerModal.onOpen()
+                    }}
                         className='text-neutral-950 cursor-pointer hover:underline'>
-                        Log in
+                        Sign up
                     </div>
                 </div>
             </div>

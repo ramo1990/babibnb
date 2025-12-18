@@ -4,9 +4,14 @@ export interface RegisterFormValues {
     password: string
   }
 
-  export interface CurrentUserType {
-    id: string
-    email: string
-    name: string
-    image: string | null
-  }
+export interface LoginFormValues {
+  email: string
+  password: string
+}
+
+export interface CurrentUserType {
+  id: string
+  email: string
+  name: string
+  image: string | null
+}

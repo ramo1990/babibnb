@@ -3,6 +3,7 @@ import { CurrentUserType } from './types';
 import { AxiosError } from 'axios';
 
 
+// Déplacer la logique de récupération et de refresh des tokens dans un intercepteur Axios pour éviter les problèmes de sessions perdues
 export const getCurrentUser = async (): Promise<CurrentUserType | null> => {
     // éviter l'accès à localStorage côté serveur
     if (typeof window === "undefined") return null
@@ -17,11 +18,9 @@ export const getCurrentUser = async (): Promise<CurrentUserType | null> => {
             },
         });
 
-        console.log("Current user:", response.data)
         return response.data;
     } catch (error: unknown) {
         const err = error as AxiosError;
-        console.error("Erreur récupération utilisateur:", err.response?.data || err.message);
 
         //  si token expiré → tenter un refresh
         if (err?.response?.status === 401) {

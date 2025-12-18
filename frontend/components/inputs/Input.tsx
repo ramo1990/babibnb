@@ -1,26 +1,28 @@
 import { RegisterFormValues } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import React from 'react'
-import {FieldErrors, FieldValues, UseFormRegister} from 'react-hook-form'
+import {FieldErrors, FieldValues, Path, UseFormRegister} from 'react-hook-form'
 import { BiDollar } from 'react-icons/bi';
 
 
-interface InputProps {
-    id: keyof RegisterFormValues;
+interface InputProps<T extends FieldValues> {
+    id: Path<T>;
     label: string;
     type?: string;
     disabled?: boolean;
     formatPrice?: boolean;
     required: boolean;
-    register: UseFormRegister<RegisterFormValues>
-    errors: FieldErrors<RegisterFormValues>
+    register: UseFormRegister<T>
+    errors: FieldErrors<T>
 }
-const Input = ({id, label, type="text", disabled, formatPrice, required, register, errors}: InputProps) => {
+
+const Input = <T extends FieldValues>({id, label, type="text", disabled, formatPrice, required=false, register, errors}: InputProps<T>) => {
     return (
         <div className='w-full relative'>
             {formatPrice && (
                 < BiDollar size={24} className='text-neutral-700 absolute top-5 left-2'/>
             )}
+
             <input 
                 id={id} 
                 type={type}
@@ -34,6 +36,7 @@ const Input = ({id, label, type="text", disabled, formatPrice, required, registe
                     errors[id] ? "focus:border-rose-500" : "focus:border-black"
                 )}
             />
+            
             <label
                 className={cn("absolute text-md duration-150 transform -translate-y-3 top-5 z-10 origin-left",
                     formatPrice ? "left-9" : "left-4",
