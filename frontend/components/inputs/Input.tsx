@@ -15,7 +15,7 @@ interface InputProps {
     register: UseFormRegister<RegisterFormValues>
     errors: FieldErrors<RegisterFormValues>
 }
-const Inputs = ({id, label, type="text", disabled, formatPrice, required, register, errors}: InputProps) => {
+const Input = ({id, label, type="text", disabled, formatPrice, required, register, errors}: InputProps) => {
     return (
         <div className='w-full relative'>
             {formatPrice && (
@@ -46,4 +46,4 @@ const Inputs = ({id, label, type="text", disabled, formatPrice, required, regist
     )
 }
 
-export default Inputs
+export default Input

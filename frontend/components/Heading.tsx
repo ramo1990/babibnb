@@ -6,16 +6,19 @@ interface HeadingProps{
     subtitle?: string;
     center?: boolean;
 }
-// TODO: le sous-titre n’est affiché que s’il existe, pour éviter un <div> vide
+
 const Heading = ({title, subtitle, center}: HeadingProps) => {
     return (
         <div className={center ? 'text-center' : 'text-start'}>
             <div className='text-2xl font-bold'>
                 {title}
             </div>
-            <div className='font-light text-neutral-500 mt-2'>
-                {subtitle}
-            </div>
+            {/* Affiché le sous-titre que s’il existe, pour éviter un <div> vide */}
+            {subtitle && (
+                <div className='font-light text-neutral-500 mt-2'>
+                    {subtitle}
+                </div>
+            )}
         </div>
     )
 }

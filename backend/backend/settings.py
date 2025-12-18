@@ -13,7 +13,6 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-uhyansgz1%v%ff!5ee2@=*(=h44uy53j9l(fr%(yw&!2p8gy8)'
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -60,7 +59,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    
     'accounts',
 ]
 

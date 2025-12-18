@@ -2,17 +2,16 @@ from rest_framework import serializers
 from .models import CustomUser
 
 
-# TODO : Rendre email ou username obligatoire
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
         model = CustomUser
         fields = ('id', 'name', 'email', 'password')
-        # extra_kwargs = {
-        #     'email': {'required': True},
-        #     'username': {'required': True},
-        # }
+        extra_kwargs = {
+            'email': {'required': True}, # Rendre email obligatoire
+            # 'username': {'required': True},
+        }
 
     def validate_email(self, value):
         # Vérifie que l'email n'est pas déjà utilisé.

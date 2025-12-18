@@ -68,7 +68,7 @@ const Modal = ({isOpen, onClose, onSubmit, title, body, footer, actionLabel, dis
                         <div className='flex items-center p-6 rounded-t justify-center relative border-b'>
                             <button
                                 onClick={handleClose}
-                                className='p-1 border-0 hover:opacity-70 transition absolute left-9'>
+                                className='p-1 border-0 hover:opacity-70 transition absolute left-9' aria-label="Close modal">
                                 <X /> {/* icône de fermeture */}
                             </button>
                             <div className='text-lg font-semibold'>
@@ -80,7 +80,7 @@ const Modal = ({isOpen, onClose, onSubmit, title, body, footer, actionLabel, dis
                             {body}
                         </div>
                         {/* Pied de page */}
-                        <div className='flex-flex-col gap-2 p-6'>
+                        <div className='flex flex-col gap-2 p-6'>
                             <div className='flex flex-row items-center gap-4 w-full'>
                                 {secondaryAction && secondaryActionLabel && (
                                     <Button 

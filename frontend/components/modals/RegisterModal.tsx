@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState } from 'react'
-import axios from 'axios'
+import { useState } from 'react'
 import { FcGoogle } from 'react-icons/fc'
-import { FieldValues, SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import useRegisterModal from '@/lib/useRegisterModal'
 import Modal from './Modal'
 import Heading from '../Heading'
@@ -12,13 +11,8 @@ import { toast } from 'react-hot-toast'
 import { Button } from '../ui/button'
 import { FaFacebook } from 'react-icons/fa'
 import { api } from '@/lib/axios'
+import { RegisterFormValues } from '@/lib/types'
 
-
-interface RegisterFormValues {
-    name: string
-    email: string
-    password: string
-  }
 
 // TODO: migrer Input vers une version shadcn/ui
 // ajouter une validation côté client (ex: email valide, mot de passe minimum 6 caractères) directement avec react-hook-form.
@@ -65,7 +59,7 @@ const RegisterModal = () => {
             <hr />
             <Button 
                 variant="outline" 
-                label='Continue witn Google' 
+                label='Continue with Google' 
                 icon={FcGoogle}
                 onClick={() => {}}
             />
@@ -77,11 +71,11 @@ const RegisterModal = () => {
             />
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>
-                    Already have account? 
+                    Already have an account? 
                     <div 
                     onClick={registerModal.onClose}
                         className='text-neutral-950 cursor-pointer hover:underline'>
-                        Login in
+                        Log in
                     </div>
                 </div>
             </div>
