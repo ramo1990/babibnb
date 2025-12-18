@@ -3,3 +3,10 @@ export interface RegisterFormValues {
     email: string
     password: string
   }
+
+  export interface CurrentUserType {
+    id: string
+    email: string
+    name: string
+    image: string | null
+  }

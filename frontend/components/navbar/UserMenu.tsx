@@ -5,10 +5,15 @@ import Avatar from '../Avatar'
 import MenuItem from './MenuItem'
 import { MenuIcon } from 'lucide-react'
 import useRegisterModal from '@/lib/useRegisterModal'
+import useLoginModal from '@/lib/useLoginModal'
+import toast from 'react-hot-toast'
+import useAuthStore from '@/lib/useAuthStore'
 
 
 const UserMenu = () => {
+    const { currentUser, logout } = useAuthStore()
     const registerModal = useRegisterModal()
+    const loginModal = useLoginModal()
     const [isOpen, setIsOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
     // renvoie la valeur opposée de la valeur actuelle; dans ce cas true
@@ -28,6 +33,13 @@ const UserMenu = () => {
             document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [])
+
+    // Fonction logout
+    const handleLogout = () => {
+        logout()
+        toast.success("Déconnecté avec succès")
+        setIsOpen(false)
+    }
 
     return (
         <div className='relative' ref={menuRef}>
@@ -50,14 +62,24 @@ const UserMenu = () => {
             {isOpen && (
                 <div className='absolute rounded-xl shadow-md w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-12 text-sm'>
                     <div className='flex flex-col cursor-pointer'>
-                       <MenuItem 
-                            onClick={() => {}}
-                            label= 'Login'
-                        />
-                        <MenuItem 
-                            onClick={registerModal.onOpen}
-                            label= 'Sign up'
-                        />
+                        {/* si le user en connecté */}
+                        {currentUser ? (
+                            <>
+                                <MenuItem onClick={() => {}} label= 'My trips' />
+                                <MenuItem onClick={() => {}} label= 'My favorites' />
+                                <MenuItem onClick={() => {}} label= 'My reservations' />
+                                <MenuItem onClick={() => {}} label= 'My properties' />
+                                <MenuItem onClick={() => {}} label= 'My Airbnb my home' />
+                                <hr />
+                                <MenuItem onClick={handleLogout} label= 'Logout' />
+                            </>
+                        ): (
+                            <>
+                                <MenuItem onClick={loginModal.onOpen} label= 'Login' />
+                                <MenuItem onClick={registerModal.onOpen} label= 'Sign up' />
+                            </>
+                        )}
+                        
                     </div>
                 </div>
             )}

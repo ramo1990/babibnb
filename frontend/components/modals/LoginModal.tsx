@@ -12,44 +12,62 @@ import { Button } from '../ui/button'
 import { FaFacebook } from 'react-icons/fa'
 import { api } from '@/lib/axios'
 import { RegisterFormValues } from '@/lib/types'
+import useLoginModal from '@/lib/useLoginModal'
+import { useRouter } from 'next/navigation'
+import useAuthStore from '@/lib/useAuthStore'
 
 
 // TODO: migrer Input vers une version shadcn/ui
-// Apres inscription, connecté le user
 // ajouter une validation côté client (ex: email valide, mot de passe minimum 6 caractères) directement avec react-hook-form.
-const RegisterModal = () => {
+const LoginModal = () => {
+    const router = useRouter()
     const registerModal = useRegisterModal();
+    const loginModal = useLoginModal()
     const [isLoading, setIsLoading] = useState(false)
     const {register, handleSubmit, formState: {errors}} = useForm<RegisterFormValues>({defaultValues: {
-        name: '',
+        // name: '',
         email: '',
         password: '',
     }})
 
-    const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
-        setIsLoading(true);
+    const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+        try {
+            setIsLoading(true);
 
-        api.post('/register/', data)
-        .then((response) => {
-            console.log('Inscription réussie:', response.data)
-            registerModal.onClose(); // ferme la modal si succès
-            toast.success('Account created successfully')
-        }) 
-        .catch((error) => { 
-            console.error(' Erreur inscription:', error.response?.data || error)
-            toast.error('Something went wrong'); // affiche une erreur
-        }) 
-        .finally(() => {setIsLoading(false); }) // réactive les champs/boutons
+            // Login
+            const tokensRes = await api.post('/login/', { email: data.email, password: data.password })
+            const {access, refresh} = tokensRes.data
+            localStorage.setItem('access', access)
+            localStorage.setItem('refresh', refresh)
+
+            // Récupérer l'utilisateur courant
+            const meRes = await api.get('/me/', {
+                headers: {
+                Authorization: `Bearer ${access}`,
+                },
+            })
+
+            // Mettre à jour Zustand
+            useAuthStore.getState().setUser(meRes.data)
+
+            toast.success('Logged in successfully')
+            loginModal.onClose() // ferme la modal si succès
+        } catch (error: any) { 
+            console.error(' Erreur login:', error.response?.data || error)
+            toast.error('Email ou mot de passe incorrect'); // affiche une erreur
+        } finally {
+            setIsLoading(false)
+        }
     }
+
     // Contenu du corps
     const bodyContent = (
         <div className='flex flex-col gap-4'>
             <Heading  
-                title='Welcome to airbnb'
-                subtitle='Create an account!'
+                title='Welcome back'
+                subtitle='Login to your account!'
             />
             <Input id='email' label='Email' disabled={isLoading} register={register} errors={errors} required />
-            <Input id='name' label='Name' disabled={isLoading} register={register} errors={errors} required />
             <Input id='password' type='password' label='Password' disabled={isLoading} register={register} errors={errors} required />
         </div>
     )
@@ -58,18 +76,8 @@ const RegisterModal = () => {
     const footerContent = (
         <div className='flex flex-col gap-4'>
             <hr />
-            <Button 
-                variant="outline" 
-                label='Continue with Google' 
-                icon={FcGoogle}
-                onClick={() => {}}
-            />
-            <Button 
-                variant="outline" 
-                label='Continue with Facebook' 
-                icon={FaFacebook}
-                onClick={() => {}}
-            />
+            <Button variant="outline" label='Continue with Google' icon={FcGoogle} onClick={() => {}}/>
+            <Button variant="outline" label='Continue with Facebook' icon={FaFacebook} onClick={() => {}}/>
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>
                     Already have an account? 
@@ -86,10 +94,10 @@ const RegisterModal = () => {
     return (
         <Modal 
             disabled= {isLoading}
-            isOpen= {registerModal.isOpen}
-            title='Register'
+            isOpen= {loginModal.isOpen}
+            title='Login'
             actionLabel='Continue'
-            onClose={registerModal.onClose}
+            onClose={loginModal.onClose}
             onSubmit={handleSubmit(onSubmit)}
             body={bodyContent}
             footer={footerContent}
@@ -97,4 +105,4 @@ const RegisterModal = () => {
     )
 }
 
-export default RegisterModal
+export default LoginModal
