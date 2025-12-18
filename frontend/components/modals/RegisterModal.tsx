@@ -15,6 +15,7 @@ import { RegisterFormValues } from '@/lib/types'
 
 
 // TODO: migrer Input vers une version shadcn/ui
+// Apres inscription, connecté le user
 // ajouter une validation côté client (ex: email valide, mot de passe minimum 6 caractères) directement avec react-hook-form.
 const RegisterModal = () => {
     const registerModal = useRegisterModal();
@@ -28,7 +29,7 @@ const RegisterModal = () => {
     const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
         setIsLoading(true);
 
-        api.post('/register', data)
+        api.post('/register/', data)
         .then((response) => {
             console.log('Inscription réussie:', response.data)
             registerModal.onClose(); // ferme la modal si succès
