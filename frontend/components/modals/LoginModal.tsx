@@ -15,6 +15,7 @@ import { LoginFormValues } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
 import { useRouter } from 'next/navigation'
 import useAuthStore from '@/lib/useAuthStore'
+import { signIn } from "next-auth/react"
 
 
 // TODO: migrer Input vers une version shadcn/ui
@@ -76,7 +77,7 @@ const LoginModal = () => {
     const footerContent = (
         <div className='flex flex-col gap-4'>
             <hr />
-            <Button variant="outline" label='Continue with Google' icon={FcGoogle} onClick={() => {}}/>
+            <Button variant="outline" label='Continue with Google' icon={FcGoogle} onClick={() => signIn('google')}/>
             <Button variant="outline" label='Continue with Facebook' icon={FaFacebook} onClick={() => {}}/>
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>

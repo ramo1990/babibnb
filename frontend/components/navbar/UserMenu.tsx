@@ -8,14 +8,16 @@ import useRegisterModal from '@/lib/useRegisterModal'
 import useLoginModal from '@/lib/useLoginModal'
 import toast from 'react-hot-toast'
 import useAuthStore from '@/lib/useAuthStore'
+import { useSession } from "next-auth/react"
 
 
 const UserMenu = () => {
+    const { data: session } = useSession()
     const { currentUser, logout } = useAuthStore()
     const registerModal = useRegisterModal()
     const loginModal = useLoginModal()
     const [isOpen, setIsOpen] = useState(false)
-    const menuRef = useRef<HTMLDivElement | null>(null)
+    const menuRef = useRef<HTMLDivElement | null>(null) 
     // renvoie la valeur opposée de la valeur actuelle; dans ce cas true
     const toggleOpen = useCallback(() => {
         setIsOpen((value) => !value);
@@ -40,7 +42,7 @@ const UserMenu = () => {
         toast.success("Déconnecté avec succès")
         setIsOpen(false)
     }
-
+    
     return (
         <div className='relative' ref={menuRef}>
             <div className='flex flex-row items-center gap-3'>
@@ -55,7 +57,9 @@ const UserMenu = () => {
                     className='px-4  md:py-1 md:px-2 border border-neutral-200 flex flex-row items-center gap-3 rounded-full 
                                 cursor-pointer hover:shadow-md transition'>
                     <MenuIcon className='w-9 h-9 md:w-5 md:h-5'/> {/* petit sur grand ecran et grand sur mobile */}
-                    <div className=' hidden md:block '> <Avatar /> </div>
+                    <div className=' hidden md:block '> 
+                        <Avatar src={currentUser?.image || session?.user?.image} /> 
+                    </div>
                 </div>
             </div>
 
