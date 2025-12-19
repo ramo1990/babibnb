@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { CurrentUserType } from '@/lib/types'
+import { getCurrentUser } from './getCurrentUser'
 
 
 interface AuthStore {
   currentUser: CurrentUserType | null
   setUser: (user: CurrentUserType | null) => void
   logout: () => void
+  loadUser: () => Promise<void>
 }
-// TODO : Enrichir le store avec une fonction loadUser() qui utilise ta fonction 
-// getCurrentUser pour recharger automatiquement l’utilisateur au démarrage de l’app
 
 const useAuthStore = create<AuthStore>((set) => ({
   currentUser: null,
@@ -21,6 +21,16 @@ const useAuthStore = create<AuthStore>((set) => ({
       localStorage.removeItem('refresh')
     }
     set({ currentUser: null })
+  },
+
+  loadUser: async () => {
+    try {
+      const user = await getCurrentUser()
+      set({ currentUser: user }) 
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'utilisateur:", error)
+      set({ currentUser: null })
+    }
   },
 }))
 

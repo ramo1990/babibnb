@@ -15,16 +15,21 @@ import { LoginFormValues } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
 import { useRouter } from 'next/navigation'
 import useAuthStore from '@/lib/useAuthStore'
-import { getCurrentUser } from '@/lib/getCurrentUser'
 
 
 // TODO: migrer Input vers une version shadcn/ui
-// ajouter une validation côté client (ex: email valide, mot de passe minimum 6 caractères) directement avec react-hook-form.
+// TODO: ajouter une validation côté client (ex: email valide, mot de passe minimum 6 caractères) directement avec react-hook-form.
+// TODO: brancher loadUser() dans ton LoginModal pour que l’utilisateur soit hydraté immédiatement après un login réussi
+// loadUser est dans useAuthStore
 const LoginModal = () => {
     const router = useRouter()
     const registerModal = useRegisterModal();
     const loginModal = useLoginModal()
     const [isLoading, setIsLoading] = useState(false)
+
+    // on récupère loadUser depuis le store Zustand
+    const loadUser = useAuthStore((state) => state.loadUser)
+
     const {register, handleSubmit, formState: {errors}} = useForm<LoginFormValues>({defaultValues: {
         email: '',
         password: '',
@@ -42,9 +47,8 @@ const LoginModal = () => {
                 localStorage.setItem('refresh', refresh)
             }
 
-            // Récupérer l'utilisateur courant
-            const user = await getCurrentUser()
-            useAuthStore.getState().setUser(user)
+            // Hydrater immédiatement l'utilisateur via loadUser()
+            await loadUser()
 
             toast.success('Logged in successfully')
             loginModal.onClose() // ferme la modal si succès
