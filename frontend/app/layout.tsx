@@ -3,9 +3,8 @@ import { Nunito } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
 import RegisterModal from "@/components/modals/RegisterModal";
-import {Toaster} from 'react-hot-toast'
 import LoginModal from "@/components/modals/LoginModal";
-import AuthProvider from "@/components/providers/AuthProvider";
+import Providers from "@/components/providers/Providers";
 
 
 const font = Nunito({
@@ -26,13 +25,12 @@ export default function RootLayout({
     <html lang="fr">
       <body className={font.className}>
       {/* <body className={`${font.className} pt-20`}> */}
-        <AuthProvider>
-          <Toaster />
-          <RegisterModal />
-          <LoginModal />
-          <Navbar />
-          {children}
-        </AuthProvider>
+          <Providers>
+            <RegisterModal />
+            <LoginModal />
+            <Navbar />
+            {children}
+          </Providers>
       </body>
     </html>
   );

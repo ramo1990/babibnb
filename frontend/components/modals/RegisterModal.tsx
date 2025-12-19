@@ -14,6 +14,7 @@ import { api } from '@/lib/axios'
 import { RegisterFormValues } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
 import useAuthStore from '@/lib/useAuthStore'
+import { signIn } from "next-auth/react"
 
 
 // TODO: migrer Input vers une version shadcn/ui
@@ -86,7 +87,7 @@ const RegisterModal = () => {
                 variant="outline" 
                 label='Continue with Google' 
                 icon={FcGoogle}
-                onClick={() => {}}
+                onClick={() => signIn('google')}
             />
             <Button 
                 variant="outline" 

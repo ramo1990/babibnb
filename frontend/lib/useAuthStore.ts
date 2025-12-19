@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { CurrentUserType } from '@/lib/types'
 import { getCurrentUser } from './getCurrentUser'
+import { signOut } from "next-auth/react"
 
 
 interface AuthStore {
@@ -20,6 +21,8 @@ const useAuthStore = create<AuthStore>((set) => ({
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
     }
+    // Déconnecter aussi NextAuth si une session Google existe
+    signOut({redirect: false})
     set({ currentUser: null })
   },
 
