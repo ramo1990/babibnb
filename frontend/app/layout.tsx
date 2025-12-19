@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar/Navbar";
 import RegisterModal from "@/components/modals/RegisterModal";
 import {Toaster} from 'react-hot-toast'
 import LoginModal from "@/components/modals/LoginModal";
+import AuthProvider from "@/components/providers/AuthProvider";
 
 
 const font = Nunito({
@@ -25,11 +26,13 @@ export default function RootLayout({
     <html lang="fr">
       <body className={font.className}>
       {/* <body className={`${font.className} pt-20`}> */}
-        <Toaster />
-        <RegisterModal />
-        <LoginModal />
-        <Navbar />
-        {children}
+        <AuthProvider>
+          <Toaster />
+          <RegisterModal />
+          <LoginModal />
+          <Navbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

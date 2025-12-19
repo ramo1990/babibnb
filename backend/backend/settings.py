@@ -43,7 +43,7 @@ SIMPLE_JWT = {
     # Login
     "UPDATE_LAST_LOGIN": True,
     # Tolérance horloge
-    "LEEWAY": 0,
+    "LEEWAY": 30,
     # Payload minimal
     "TOKEN_TYPE_CLAIM": "token_type",
 }
