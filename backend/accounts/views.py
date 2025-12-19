@@ -33,7 +33,7 @@ class MeView(APIView):
 
 
 User = get_user_model()
-
+# TODO: valider le format de l'email
 class GoogleAuthView(APIView):
     def post(self, request):
         email = request.data.get("email")

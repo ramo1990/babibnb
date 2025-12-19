@@ -16,13 +16,13 @@ const useAuthStore = create<AuthStore>((set) => ({
 
   setUser: (user) => set({ currentUser: user }),
 
-  logout: () => {
+  logout: async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
     }
     // Déconnecter aussi NextAuth si une session Google existe
-    signOut({redirect: false})
+    await signOut({redirect: false})
     set({ currentUser: null })
   },
 

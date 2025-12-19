@@ -23,10 +23,9 @@ const handler = NextAuth({
     async session({session, token}) {
       // Copie les infos du token dans la session
       if (session.user) {
-        session.user.name = token.name as string
-        session.user.email = token.email as string
-        session.user.image = token.picture as string
-        
+        session.user.name = token.name ?? null
+        session.user.email = token.email ?? null
+        session.user.image = token.picture ?? null
       }
       return session
     },

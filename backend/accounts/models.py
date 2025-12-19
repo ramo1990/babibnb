@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 
 # TODO: modifier ton modèle CustomUser pour rendre l’email unique en base
+# TODO : Consider adding a custom validator if users can update their image URL manually:
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
