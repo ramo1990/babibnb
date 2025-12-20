@@ -10,16 +10,16 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     FacebookProvider({
-      clientId: process.env.FACEBOOK_APP_ID!,
-      clientSecret: process.env.FACEBOOK_APP_SECRET!,
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({token, user}) {
-      // Quand l'utilisateur se connecte pour la première fois
+      // Quand l'utilisateur se connecte pour la première fois(Google ou Facebook))
       if (user) {
-        console.log("Google user reçu:", user)
+        console.log("OAuth user reçu:", user)
         token.name = user.name
         token.email = user.email
         token.picture = user.image
