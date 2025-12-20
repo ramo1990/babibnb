@@ -78,7 +78,7 @@ const LoginModal = () => {
         <div className='flex flex-col gap-4'>
             <hr />
             <Button variant="outline" label='Continue with Google' icon={FcGoogle} onClick={() => signIn('google')}/>
-            <Button variant="outline" label='Continue with Facebook' icon={FaFacebook} onClick={() => {}}/>
+            <Button variant="outline" label='Continue with Facebook' icon={FaFacebook} onClick={() => signIn('facebook')}/>
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>
                     Don't have an account? 
