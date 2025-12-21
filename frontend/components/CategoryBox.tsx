@@ -22,7 +22,7 @@ const CategoryBox = ({icon: Icon, label, selected}: CategoryBoxProps) => {
             currentQuery = qs.parse(params.toString())
         }
 
-        const updatedQuery : any = {
+        const updatedQuery : Record<string, string | string[] | undefined> = {
             ...currentQuery,
             category: label
         }

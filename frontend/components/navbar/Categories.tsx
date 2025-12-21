@@ -42,7 +42,7 @@ export const categoryItems = [
         label: 'Camping', icon: GiForestCamp, description: 'This property has camping activities!'
     },
     {
-        label: 'Arctic', icon: BsSnow, description: 'This property has camping activities!'
+        label: 'Arctic', icon: BsSnow, description: 'This property is an arctic environment!'
     },
     {
         label: 'Cave', icon: GiCaveEntrance, description: 'This property is in a cave!'
@@ -54,7 +54,7 @@ export const categoryItems = [
         label: 'Barns', icon: GiBarn, description: 'This property is in the barn!'
     },
     {
-        label: 'Lux', icon: IoDiamond, description: 'This property is in the barn!'
+        label: 'Lux', icon: IoDiamond, description: 'This property is luxurious!'
     },
 ]
 
