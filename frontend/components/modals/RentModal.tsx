@@ -24,7 +24,7 @@ const RentModal = () => {
 
     const {register, handleSubmit, setValue, watch, formState: {errors,}, reset} = useForm<FieldValues>({
         defaultValues: {
-            category: '',
+            categories: [],
             location: null,
             guestCount: 1,
             roomCount: 1,
@@ -37,7 +37,7 @@ const RentModal = () => {
         }
     })
 
-    const category = watch('category')
+    const categories = watch('categories') || []
 
     const setCustomValue = (id: string, value: any) => {
         setValue(id, value, {
@@ -45,6 +45,17 @@ const RentModal = () => {
             shouldDirty: true,
             shouldTouch: true
         })
+    }
+    
+    const toggleCategory = (label: string) => {
+        let updated = [...categories]
+
+        if (updated.includes(label)) {
+            updated = updated.filter((item) => item !== label)
+        } else {
+            updated.push(label)
+        }
+        setCustomValue('categories', updated)
     }
 
     const onBack = () => {
@@ -76,8 +87,8 @@ const RentModal = () => {
                 {categoryItems.map((item) => (
                     <div key={item.label} className='col-span-1'>
                         <CategoryInput 
-                            onClick={(category) => setCustomValue('category', category)}
-                            selected={category === item.label}
+                            onClick={() => toggleCategory(item.label)}
+                            selected={categories.includes(item.label)}
                             label={item.label}
                             icon={item.icon}
                         />
