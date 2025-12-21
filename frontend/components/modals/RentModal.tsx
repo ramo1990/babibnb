@@ -46,7 +46,7 @@ const RentModal = () => {
             shouldTouch: true
         })
     }
-    
+
     const toggleCategory = (label: string) => {
         let updated = [...categories]
 
@@ -59,11 +59,11 @@ const RentModal = () => {
     }
 
     const onBack = () => {
-        setStep((value) => value - 1)
+        setStep((value) => value > STEPS.CATEGORY ? value - 1 : value)
     }
 
     const onNext = () => {
-        setStep((value) => value + 1)
+        setStep((value) => value <STEPS.PRICE ? value + 1 : value)
     }
 
     const actionLabel = useMemo(() => {
