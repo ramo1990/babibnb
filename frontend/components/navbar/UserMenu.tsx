@@ -9,6 +9,7 @@ import useLoginModal from '@/lib/useLoginModal'
 import toast from 'react-hot-toast'
 import useAuthStore from '@/lib/useAuthStore'
 import { useSession } from "next-auth/react"
+import useRentModal from '@/lib/useRentModal'
 
 
 const UserMenu = () => {
@@ -16,6 +17,7 @@ const UserMenu = () => {
     const { currentUser, logout } = useAuthStore()
     const registerModal = useRegisterModal()
     const loginModal = useLoginModal()
+    const rentModal = useRentModal()
     const [isOpen, setIsOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null) 
     // renvoie la valeur opposée de la valeur actuelle; dans ce cas true
@@ -43,13 +45,21 @@ const UserMenu = () => {
         setIsOpen(false)
     }
     
+    const onRent = useCallback(() => {
+        if (!currentUser) {
+            return loginModal.onOpen()
+        }
+        // Open rent Modal
+        rentModal.onOpen()
+    }, [currentUser, loginModal, rentModal])
+
     return (
         <div className='relative' ref={menuRef}>
             <div className='flex flex-row items-center gap-3'>
                 <div 
-                    onClick={() => {}}
+                    onClick={onRent}
                     className='hidden md:block text-sm font-semibold py-3 px-4 rounded-full hover:bg-neutral-100 transition cursor-pointer'>
-                    Airbnb your home
+                    Airbnb my home
                 </div>
 
                 <div 
@@ -73,7 +83,7 @@ const UserMenu = () => {
                                 <MenuItem onClick={() => {}} label= 'My favorites' />
                                 <MenuItem onClick={() => {}} label= 'My reservations' />
                                 <MenuItem onClick={() => {}} label= 'My properties' />
-                                <MenuItem onClick={() => {}} label= 'My Airbnb my home' />
+                                <MenuItem onClick={rentModal.onOpen} label= 'Airbnb my home' />
                                 <hr />
                                 <MenuItem onClick={handleLogout} label= 'Logout' />
                             </>
