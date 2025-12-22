@@ -9,6 +9,8 @@ import CategoryInput from '../inputs/CategoryInput'
 import { FieldValues, useForm } from 'react-hook-form'
 import CountrySelect from '../inputs/CountrySelect'
 import dynamic from 'next/dynamic'
+import CitySelect from '../inputs/CitySelect'
+import { citiesByCountry } from '@/lib/cities'
 
 
 enum STEPS {
@@ -20,6 +22,9 @@ enum STEPS {
     PRICE = 5,
 }
 
+// TODO : envoyer country + city à ton backend, afficher la ville dans le résumé de l’annonce
+// TODO : centrer la carte sur la ville sélectionnée, ajouter l’autocomplétion Google Places
+// TODO: afficher les villes les plus proches d’un point
 const RentModal = () => {
     const rentModal = useRentModal()
     const [step, setStep] = useState(STEPS.CATEGORY)
@@ -28,6 +33,7 @@ const RentModal = () => {
         defaultValues: {
             categories: [],
             location: null,
+            city: null,
             guestCount: 1,
             roomCount: 1,
             bathroomCount: 1,
@@ -41,6 +47,7 @@ const RentModal = () => {
 
     const categories = watch('categories') || []
     const location = watch('location')
+    const city = watch('city')
 
     const Map = useMemo(() => dynamic(() => import('../Map'), {
         ssr: false
@@ -107,14 +114,28 @@ const RentModal = () => {
     )
     
     // listing 2: location
-    if (step === STEPS.LOCATION) {
+    if (step === STEPS.LOCATION) {        
+        const countryCode = location?.value
+        const cities = countryCode ? citiesByCountry[countryCode] || [] : []
+
         bodyContent = (
             <div className='flex flex-col gap-8'>
                 <Heading title='Where is your place located?' subtitle='Help guests find you!'/>
                 <CountrySelect 
                     value={location}
-                    onChange={(value) => setCustomValue('location', value)}
+                    onChange={(value) => {
+                        setCustomValue('location', value)
+                        setCustomValue('city', null) // reset city when country changes
+                    }}
                 />
+                {cities.length > 0 && (
+                    <CitySelect 
+                        cities={cities}
+                        value={city}
+                        onChange={(value) => setCustomValue('city', value)}
+                    />
+                )}
+
                 <Map center={location?.latlng} />
             </div>
         )
