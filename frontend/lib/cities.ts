@@ -1,12 +1,3 @@
-// export const citiesByCountry: Record<string, string[]> = {
-//     FR: ["Paris", "Marseille", "Lyon", "Lille", "Toulouse", "Nice", "Bordeaux"],
-//     US: ["New York", "Los Angeles", "Chicago", "Houston", "Miami"],
-//     JP: ["Tokyo", "Osaka", "Kyoto", "Nagoya"],
-//     ES: ["Madrid", "Barcelona", "Valencia", "Seville"],
-//     IT: ["Rome", "Milan", "Naples", "Turin"],
-//     // Ajoute ce que tu veux
-//   }
-
 export const citiesByCountry: Record<string, { name: string; latlng: number[] }[]> = {
     FR: [
       { name: "Paris", latlng: [48.8566, 2.3522] },
@@ -24,6 +15,16 @@ export const citiesByCountry: Record<string, { name: string; latlng: number[] }[
       { name: "Houston", latlng: [29.7604, -95.3698] },
       { name: "Miami", latlng: [25.7617, -80.1918] },
     ],
+    CI: [
+        { name: "Abidjan", latlng: [5.3599, -4.0083] },
+        { name: "Bouaké", latlng: [7.6906, -5.0303] },
+        { name: "Yamoussoukro", latlng: [6.8276, -5.2893] },
+        { name: "Daloa", latlng: [6.8774, -6.4500] },
+        { name: "San-Pédro", latlng: [4.7485, -6.6363] },
+        { name: "Korhogo", latlng: [9.4580, -5.6290] },
+    ],
     // etc.
   }
-  
+
+//   afficher Abidjan en priorité, grouper les villes par région, charger les villes dynamiquement selon le pays
+// ou remplacer ce tableau par une API backend plus tard

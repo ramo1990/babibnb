@@ -11,6 +11,8 @@ import CountrySelect from '../inputs/CountrySelect'
 import dynamic from 'next/dynamic'
 import CitySelect from '../inputs/CitySelect'
 import { citiesByCountry } from '@/lib/cities'
+import { haversineDistance } from '@/lib/distance'
+import { findCountryFromCoords } from '@/lib/findCountry'
 
 
 enum STEPS {
@@ -23,8 +25,8 @@ enum STEPS {
 }
 
 // TODO : envoyer country + city à ton backend, afficher la ville dans le résumé de l’annonce
-// TODO : ajouter l’autocomplétion Google Places
-// TODO: afficher les villes les plus proches d’un point, afficher un marqueur sur la ville sélectionnée
+// TODO: détecter automatiquement le pays à partir du clic
+  
 const RentModal = () => {
     const rentModal = useRentModal()
     const [step, setStep] = useState(STEPS.CATEGORY)
@@ -49,9 +51,32 @@ const RentModal = () => {
     const location = watch('location')
     const city = watch('city')
 
+    const countryCode = location?.value
+    const cities = useMemo(() => {
+        return countryCode ? citiesByCountry[countryCode] || [] : []
+    }, [countryCode])
+     
+    // trouver la ville la plus proche
+    const findClosestCity = (coords: number[]) => {
+        if (!cities || cities.length === 0) return null
+      
+        let closest = null
+        let minDistance = Infinity
+      
+        for (const c of cities) {
+          const dist = haversineDistance(coords, c.latlng)
+          if (dist < minDistance) {
+            minDistance = dist
+            closest = c
+          }
+        }
+      
+        return closest
+      }
+
     const Map = useMemo(() => dynamic(() => import('../Map'), {
         ssr: false
-    }), [location])
+    }), [location, city])
 
     const setCustomValue = (id: string, value: any) => {
         setValue(id, value, {
@@ -136,7 +161,43 @@ const RentModal = () => {
                     />
                 )}
 
-                <Map center={city?.latlng ?? location?.latlng} />
+                <Map 
+                    center={city?.latlng ?? location?.latlng}
+                    // nearbyCities={nearbyCities} 
+                    onClickMap={(coords) => {
+                        const [lat, lng] = coords
+                        // 1. Trouver automatiquement le pays
+                        const detectedCountry = findCountryFromCoords(lat, lng)
+
+                        if (detectedCountry) {
+                            setCustomValue("location", detectedCountry)
+                        } else {
+                            // fallback si aucun pays trouvé
+                            setCustomValue("location", {
+                                ...location,
+                                latlng: coords
+                            })
+                        }
+
+                        // 2. Trouver la ville la plus proche dans ce pays
+                        const countryCode = detectedCountry?.value
+                        const cities = countryCode ? citiesByCountry[countryCode] || [] : []
+
+                        let closestCity = null
+                        let minDist = Infinity
+                        for (const c of cities) {
+                            const d = haversineDistance(coords, c.latlng)
+                            if (d < minDist) {
+                                minDist = d
+                                closestCity = c
+                            }
+                        }
+                        // Met à jour la ville si trouvée
+                        if (closestCity) {
+                            setCustomValue("city", closestCity) // reset city si clic manuel
+                        } 
+                    }}
+                />
             </div>
         )
     }
