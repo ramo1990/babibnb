@@ -25,7 +25,6 @@ enum STEPS {
 }
 
 // TODO : envoyer country + city à ton backend, afficher la ville dans le résumé de l’annonce
-// TODO: détecter automatiquement le pays à partir du clic
   
 const RentModal = () => {
     const rentModal = useRentModal()
@@ -63,7 +62,7 @@ const RentModal = () => {
         let closest = null
         let minDistance = Infinity
       
-        for (const c of cities) {
+        for (const c of list) {
           const dist = haversineDistance(coords, c.latlng)
           if (dist < minDistance) {
             minDistance = dist
@@ -134,7 +133,7 @@ const RentModal = () => {
                 setCustomValue("city", closestCity)
             }
         } else {
-            setCustomValue("location", { ...location, latlng: coords })
+            setCustomValue("location", location ? { ...location, latlng: coords } : {latlng: coords})
         }
     }
 
@@ -159,8 +158,8 @@ const RentModal = () => {
     
     // listing 2: location
     if (step === STEPS.LOCATION) {        
-        const countryCode = location?.value
-        const cities = countryCode ? citiesByCountry[countryCode] || [] : []
+        // const countryCode = location?.value
+        // const cities = countryCode ? citiesByCountry[countryCode] || [] : []
 
         bodyContent = (
             <div className='flex flex-col gap-8'>
