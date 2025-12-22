@@ -1,4 +1,7 @@
 export function haversineDistance(coord1: number[], coord2: number[]) {
+    if (coord1.length < 2 || coord2.length < 2) {
+      throw new Error("Coordinates must have at least 2 elements [lat, lng]")
+    }
     const toRad = (x: number) => (x * Math.PI) / 180
   
     const [lat1, lon1] = coord1

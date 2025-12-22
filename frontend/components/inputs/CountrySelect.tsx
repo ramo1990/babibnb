@@ -1,6 +1,6 @@
 'use client'
 
-import useCountries from '@/lib/useCountries';
+import getCountries from '@/lib/getCountries';
 import React from 'react'
 import Select from 'react-select'
 
@@ -15,11 +15,11 @@ export type CountrySelectValue = {
 
 interface CountrySelectProps {
     value?: CountrySelectValue;
-    onChange: (value: CountrySelectValue) => void;
+    onChange: (value: CountrySelectValue | null) => void;
 }
 
 const CountrySelect = ({value, onChange}: CountrySelectProps) => {
-    const { getAll } = useCountries()
+    const { getAll } = getCountries()
 
     return (
         <div>
@@ -28,8 +28,8 @@ const CountrySelect = ({value, onChange}: CountrySelectProps) => {
                 isClearable 
                 options={getAll()} 
                 value={value}
-                onChange={(value) => onChange(value as CountrySelectValue)}
-                formatOptionLabel={(option: any) => (
+                onChange={(value) => onChange(value as CountrySelectValue | null)}
+                formatOptionLabel={(option: CountrySelectValue) => (
                     <div className='flex flex-row items-center gap-3'>
                         <div>{option.flag}</div>
                         <div>

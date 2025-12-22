@@ -1,6 +1,15 @@
 import countries from "world-countries"
+import { haversineDistance } from "./distance"
 
-export function findCountryFromCoords(lat: number, lng: number) {
+interface CountryResult {
+  value: string
+  label: string
+  flag: string
+  region: string
+  latlng: number[]
+}
+
+export function findCountryFromCoords(lat: number, lng: number): CountryResult | null {
   let closest = null
   let minDistance = Infinity
 
@@ -9,8 +18,7 @@ export function findCountryFromCoords(lat: number, lng: number) {
 
     const [clat, clng] = country.latlng
 
-    // Distance simple au centre du pays
-    const dist = Math.sqrt((lat - clat) ** 2 + (lng - clng) ** 2)
+    const dist = haversineDistance([lat, lng], [clat, clng])
 
     if (dist < minDistance) {
       minDistance = dist

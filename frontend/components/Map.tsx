@@ -28,13 +28,12 @@ function ClickHandler({ onClick }: { onClick: (coords: number[]) => void }) {
 
 interface MapProps {
     center?:number[]
-    nearbyCities?: { name: string; latlng: number[]; distance: number }[]
     onClickMap?: (coords: number[]) => void
 }
 
 // TODO : intégrer Leaflet Geosearch pour rechercher une adresse
-  
-const Map = ({center, nearbyCities, onClickMap}: MapProps) => {
+
+const LocationMap = ({center, onClickMap}: MapProps) => {
     return (
         <MapContainer 
             center={center as L.LatLngExpression || [51, -0.09]}
@@ -51,7 +50,7 @@ const Map = ({center, nearbyCities, onClickMap}: MapProps) => {
             {/* Marqueur principal (pays ou ville sélectionnée) */}
             {center && (
                 <Marker 
-                    position={(center ?? [51, -0.09]) as L.LatLngExpression} 
+                    position={center as L.LatLngExpression} 
                 />
             )}
 
@@ -59,4 +58,4 @@ const Map = ({center, nearbyCities, onClickMap}: MapProps) => {
     )
 }
 
-export default Map
+export default LocationMap

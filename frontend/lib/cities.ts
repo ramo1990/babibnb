@@ -1,4 +1,9 @@
-export const citiesByCountry: Record<string, { name: string; latlng: number[] }[]> = {
+type City = {
+  name: string;
+  latlng: [lat: number, lng: number];
+};
+
+export const citiesByCountry: Record<string, City[]> = {
     FR: [
       { name: "Paris", latlng: [48.8566, 2.3522] },
       { name: "Marseille", latlng: [43.2965, 5.3698] },

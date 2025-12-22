@@ -57,8 +57,8 @@ const RentModal = () => {
     }, [countryCode])
      
     // trouver la ville la plus proche
-    const findClosestCity = (coords: number[]) => {
-        if (!cities || cities.length === 0) return null
+    const findClosestCity = (coords: number[], list: {name: string; latlng: number[]} []) => {
+        if (!list || list.length === 0) return null
       
         let closest = null
         let minDistance = Infinity
@@ -74,10 +74,11 @@ const RentModal = () => {
         return closest
       }
 
-    const Map = useMemo(() => dynamic(() => import('../Map'), {
+    const LocationMap = useMemo(() => dynamic(() => import('../Map'), {
         ssr: false
     }), [location, city])
 
+    
     const setCustomValue = (id: string, value: any) => {
         setValue(id, value, {
             shouldValidate: true,
@@ -118,6 +119,24 @@ const RentModal = () => {
         }
         return 'Back'
     }, [step])
+
+    const handleMapClick = (coords: number[]) => {
+        const [lat, lng] = coords
+        const detectedCountry = findCountryFromCoords(lat, lng)
+    
+        if (detectedCountry) {
+            setCustomValue("location", detectedCountry)
+            
+            const countryCities = citiesByCountry[detectedCountry.value] || []
+            const closestCity = findClosestCity(coords, countryCities)
+            
+            if (closestCity) {
+                setCustomValue("city", closestCity)
+            }
+        } else {
+            setCustomValue("location", { ...location, latlng: coords })
+        }
+    }
 
     // listing 1: Category
     let bodyContent = (
@@ -161,42 +180,9 @@ const RentModal = () => {
                     />
                 )}
 
-                <Map 
+                <LocationMap 
                     center={city?.latlng ?? location?.latlng}
-                    // nearbyCities={nearbyCities} 
-                    onClickMap={(coords) => {
-                        const [lat, lng] = coords
-                        // 1. Trouver automatiquement le pays
-                        const detectedCountry = findCountryFromCoords(lat, lng)
-
-                        if (detectedCountry) {
-                            setCustomValue("location", detectedCountry)
-                        } else {
-                            // fallback si aucun pays trouvé
-                            setCustomValue("location", {
-                                ...location,
-                                latlng: coords
-                            })
-                        }
-
-                        // 2. Trouver la ville la plus proche dans ce pays
-                        const countryCode = detectedCountry?.value
-                        const cities = countryCode ? citiesByCountry[countryCode] || [] : []
-
-                        let closestCity = null
-                        let minDist = Infinity
-                        for (const c of cities) {
-                            const d = haversineDistance(coords, c.latlng)
-                            if (d < minDist) {
-                                minDist = d
-                                closestCity = c
-                            }
-                        }
-                        // Met à jour la ville si trouvée
-                        if (closestCity) {
-                            setCustomValue("city", closestCity) // reset city si clic manuel
-                        } 
-                    }}
+                    onClickMap={handleMapClick}
                 />
             </div>
         )
