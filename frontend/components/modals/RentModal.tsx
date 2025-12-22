@@ -23,8 +23,8 @@ enum STEPS {
 }
 
 // TODO : envoyer country + city à ton backend, afficher la ville dans le résumé de l’annonce
-// TODO : centrer la carte sur la ville sélectionnée, ajouter l’autocomplétion Google Places
-// TODO: afficher les villes les plus proches d’un point
+// TODO : ajouter l’autocomplétion Google Places
+// TODO: afficher les villes les plus proches d’un point, afficher un marqueur sur la ville sélectionnée
 const RentModal = () => {
     const rentModal = useRentModal()
     const [step, setStep] = useState(STEPS.CATEGORY)
@@ -136,7 +136,7 @@ const RentModal = () => {
                     />
                 )}
 
-                <Map center={location?.latlng} />
+                <Map center={city?.latlng ?? location?.latlng} />
             </div>
         )
     }

@@ -2,25 +2,31 @@
 
 import Select from "react-select"
 
-interface CitySelectProps {
-  cities: string[];
-  value?: string;
-  onChange: (value: string) => void;
+
+export interface CitySelectValue {
+    name: string,
+    latlng: number[]
 }
 
-// transformer ce composant en un select multi‑villes (multi-select)
+interface CitySelectProps {
+  cities: CitySelectValue[];
+  value?: CitySelectValue | null;
+  onChange: (city: CitySelectValue | null) => void;
+}
+
+// TODO: transformer ce composant en un select multi‑villes (multi-select), ajouter un debounce / search
 const CitySelect = ({ cities, value, onChange }: CitySelectProps) => {
   const options = cities.map((city) => ({
-    label: city,
-    value: city
+    label: city.name,
+    value: city,
   }))
 
   return (
     <Select
       placeholder="Select a city"
       options={options}
-      value={options.find((o) => o.value === value)}
-      onChange={(option) => onChange(option?.value || "")}
+      value={ value ? {label : value.name, value} : null}
+      onChange={(option: any) => onChange(option?.value ?? null)}
       isClearable
     />
   )
