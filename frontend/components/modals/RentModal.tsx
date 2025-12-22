@@ -7,6 +7,12 @@ import Heading from '../Heading'
 import { categoryItems } from '../navbar/Categories'
 import CategoryInput from '../inputs/CategoryInput'
 import { FieldValues, useForm } from 'react-hook-form'
+import CountrySelect from '../inputs/CountrySelect'
+import dynamic from 'next/dynamic'
+import CitySelect from '../inputs/CitySelect'
+import { citiesByCountry } from '@/lib/cities'
+import { haversineDistance } from '@/lib/distance'
+import { findCountryFromCoords } from '@/lib/findCountry'
 
 
 enum STEPS {
@@ -18,6 +24,8 @@ enum STEPS {
     PRICE = 5,
 }
 
+// TODO : envoyer country + city à ton backend, afficher la ville dans le résumé de l’annonce
+  
 const RentModal = () => {
     const rentModal = useRentModal()
     const [step, setStep] = useState(STEPS.CATEGORY)
@@ -26,6 +34,7 @@ const RentModal = () => {
         defaultValues: {
             categories: [],
             location: null,
+            city: null,
             guestCount: 1,
             roomCount: 1,
             bathroomCount: 1,
@@ -38,7 +47,37 @@ const RentModal = () => {
     })
 
     const categories = watch('categories') || []
+    const location = watch('location')
+    const city = watch('city')
 
+    const countryCode = location?.value
+    const cities = useMemo(() => {
+        return countryCode ? citiesByCountry[countryCode] || [] : []
+    }, [countryCode])
+     
+    // trouver la ville la plus proche
+    const findClosestCity = (coords: number[], list: {name: string; latlng: number[]} []) => {
+        if (!list || list.length === 0) return null
+      
+        let closest = null
+        let minDistance = Infinity
+      
+        for (const c of list) {
+          const dist = haversineDistance(coords, c.latlng)
+          if (dist < minDistance) {
+            minDistance = dist
+            closest = c
+          }
+        }
+      
+        return closest
+      }
+
+    const LocationMap = useMemo(() => dynamic(() => import('../Map'), {
+        ssr: false
+    }), [location, city])
+
+    
     const setCustomValue = (id: string, value: any) => {
         setValue(id, value, {
             shouldValidate: true,
@@ -80,6 +119,25 @@ const RentModal = () => {
         return 'Back'
     }, [step])
 
+    const handleMapClick = (coords: number[]) => {
+        const [lat, lng] = coords
+        const detectedCountry = findCountryFromCoords(lat, lng)
+    
+        if (detectedCountry) {
+            setCustomValue("location", detectedCountry)
+            
+            const countryCities = citiesByCountry[detectedCountry.value] || []
+            const closestCity = findClosestCity(coords, countryCities)
+            
+            if (closestCity) {
+                setCustomValue("city", closestCity)
+            }
+        } else {
+            setCustomValue("location", location ? { ...location, latlng: coords } : {latlng: coords})
+        }
+    }
+
+    // listing 1: Category
     let bodyContent = (
         <div>
             <Heading title='Which of these best describes your place?' subtitle='Pick a category' />
@@ -97,11 +155,43 @@ const RentModal = () => {
             </div>
         </div>
     )
+    
+    // listing 2: location
+    if (step === STEPS.LOCATION) {        
+        // const countryCode = location?.value
+        // const cities = countryCode ? citiesByCountry[countryCode] || [] : []
+
+        bodyContent = (
+            <div className='flex flex-col gap-8'>
+                <Heading title='Where is your place located?' subtitle='Help guests find you!'/>
+                <CountrySelect 
+                    value={location}
+                    onChange={(value) => {
+                        setCustomValue('location', value)
+                        setCustomValue('city', null) // reset city when country changes
+                    }}
+                />
+                {cities.length > 0 && (
+                    <CitySelect 
+                        cities={cities}
+                        value={city}
+                        onChange={(value) => setCustomValue('city', value)}
+                    />
+                )}
+
+                <LocationMap 
+                    center={city?.latlng ?? location?.latlng}
+                    onClickMap={handleMapClick}
+                />
+            </div>
+        )
+    }
+
     return (
         <Modal 
             isOpen={rentModal.isOpen} 
             onClose={rentModal.onClose}  
-            onSubmit={rentModal.onClose} 
+            onSubmit={onNext} 
             actionLabel={actionLabel}
             secondaryActionLabel={secondaryActionLabel}
             secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
