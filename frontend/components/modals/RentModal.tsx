@@ -133,6 +133,12 @@ const RentModal = () => {
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         if (step !== STEPS.PRICE) {
+            // TODO: implement a validateCurrentStep function that checks required fields for each step
+            // Validate current step before advancing
+            // const isValid = validateCurrentStep(data, step)
+            // if (!isValid) {
+            //     return
+            // }
             return onNext()
         }
         setIsLoading(true)
@@ -147,8 +153,9 @@ const RentModal = () => {
             setStep(STEPS.CATEGORY)
             rentModal.onClose()
         })
-        .catch(() => {
-            toast.error('Something went wrong')
+        .catch((error) => {
+            const message = error.response?.data?.message || error.message || 'Something went wrong'
+            toast.error(`Failed to create listing: ${message}`)
         })
         .finally(() => {
             setIsLoading(false)
@@ -262,7 +269,7 @@ const RentModal = () => {
         )
     }
     
-    // Listing 5: Images
+    // Listing 5: Description
     if (step === STEPS.DESCRIPTION) {        
         bodyContent = (
             <div className='flex flex-col gap-8'>
@@ -275,7 +282,7 @@ const RentModal = () => {
         )
     }
 
-    // Listing 5: Images
+    // Listing 5: Price
     if (step === STEPS.PRICE) {        
         bodyContent = (
             <div className='flex flex-col gap-8'>
