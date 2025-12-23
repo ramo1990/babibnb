@@ -33,17 +33,25 @@ const Counter = ({title, subtitle, value, onChange}: CounterProps) => {
                 </div>
             </div>
             <div className='flex flex-row items-center gap-4'>
-                <div onClick={onReduce} className='w-10 h-10 rounded-full border border-neutral-400 flex items-center 
-                    justify-center text-neutral-600 cursor-pointer hover:opacity-80 transition'>
+                <button 
+                    onClick={onReduce} 
+                    type='button' 
+                    aria-label="Decrease value" 
+                    className='w-10 h-10 rounded-full border border-neutral-400 flex items-center justify-center text-neutral-600
+                        cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed' disabled={value <= 1}>
                     <AiOutlineMinus />
-                </div>
+                </button>
                 <div className='font-light text-xl text-neutral-600'>
                     {value}
                 </div>
-                <div onClick={onAdd} className='w-10 h-10 rounded-full border border-neutral-400 flex items-center 
-                    justify-center text-neutral-600 cursor-pointer hover:opacity-80 transition'>
+                <button 
+                    onClick={onAdd} 
+                    type='button' 
+                    aria-label="Increase value" 
+                    className='w-10 h-10 rounded-full border border-neutral-400 flex items-center justify-center text-neutral-600
+                        cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed'>
                     <AiOutlinePlus />
-                </div>
+                </button>
             </div>
         </div>
     )
