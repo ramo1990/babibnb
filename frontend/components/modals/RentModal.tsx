@@ -14,6 +14,7 @@ import { citiesByCountry } from '@/lib/cities'
 import { haversineDistance } from '@/lib/distance'
 import { findCountryFromCoords } from '@/lib/findCountry'
 import Counter from '../inputs/Counter'
+import MultiImageUpload from '../inputs/ImageUpload'
 
 
 enum STEPS {
@@ -39,7 +40,7 @@ const RentModal = () => {
             guestCount: 1,
             roomCount: 1,
             bathroomCount: 1,
-            images: '', // modele listing de backend
+            images: [], // modele listing de backend
             price: 1,
             title: '',
             description: ''
@@ -53,6 +54,7 @@ const RentModal = () => {
     const guestCount = watch('guestCount')
     const roomCount = watch('roomCount')
     const bathroomCount = watch('bathroomCount')
+    const images = watch('images')
 
     const countryCode = location?.value
     const cities = useMemo(() => {
@@ -212,6 +214,19 @@ const RentModal = () => {
                     subtitle='How many bathrooms do you have?' 
                     value={bathroomCount} 
                     onChange={(value) => setCustomValue('bathroomCount', value)} 
+                />
+            </div>
+        )
+    }
+
+    // Listing 4: Images
+    if (step === STEPS.IMAGES) {        
+        bodyContent = (
+            <div className='flex flex-col gap-8'>
+                <Heading title='Add a photo of your place' subtitle='Show guests what your place looks like!'/>
+                <MultiImageUpload 
+                    value={images} 
+                    onChange={(urls) => setCustomValue('images', urls)} 
                 />
             </div>
         )
