@@ -1,8 +1,9 @@
 import Image from 'next/image'
 import { TbPhotoPlus } from 'react-icons/tb'
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors,} from "@dnd-kit/core"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent} from "@dnd-kit/core"
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy, } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { useState } from 'react'
 
 
 interface MultiImageUploadProps {
@@ -20,11 +21,18 @@ function SortableImage({ url, onRemove }: { url: string; onRemove: () => void })
     }
   
     return (
-      <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative group aspect-square">
-        <Image src={url} alt="Uploaded" fill className="object-cover rounded-md" />
-  
+      <div ref={setNodeRef} style={style} {...attributes} className="relative group aspect-square">
+        {/* Zone draggable */}
+        <div {...listeners} className="cursor-grab active:cursor-grabbing h-full w-full">
+            <Image src={url} alt="Uploaded" fill className="object-cover rounded-md" />
+        </div>
+        {/* Bouton supprimer */}
         <button
-          onClick={onRemove}
+            onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                onRemove()
+            }}
           className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
         >
           Supprimer
@@ -37,6 +45,7 @@ function SortableImage({ url, onRemove }: { url: string; onRemove: () => void })
 
 export default function MultiImageUpload({onChange, value}: MultiImageUploadProps) {
     const sensors = useSensors(useSensor(PointerSensor))
+    const [isUploading, setIsUploading] = useState(false)
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -48,30 +57,45 @@ export default function MultiImageUpload({onChange, value}: MultiImageUploadProp
             return
         }
 
+        setIsUploading(true)
+        try {
         // Récupérer l’URL signée
         const res = await fetch('/api/upload')
+        if (!res.ok) {
+            throw new Error('Failed to get upload URL')
+        }
         const { url } = await res.json()
 
         // Envoyer le fichier vers S3
-        await fetch(url, {
+        const uploadRes = await fetch(url, {
             method: 'PUT',
             body: file,
             headers: {"Content-Type": file.type},
         })
+        if (!uploadRes.ok) {
+            throw new Error('Failed to upload image')
+        }
 
         // L’URL publique = URL signée sans les paramètres
         const publicUrl = url.split("?")[0]
 
         // 4. Ajouter à la liste
         onChange([...value, publicUrl])
+        } catch (error) {
+            console.error('Upload error:', error)
+            alert("Erreur lors de l'upload de l'image. Veuillez réessayer.")
+        } finally {
+            setIsUploading(false)
+        }
     }
 
-    const handleDragEnd = (event: any) => {
+    // Fonction drag and drop
+    const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event
         if (!over || active.id === over.id) return
     
-        const oldIndex = value.indexOf(active.id)
-        const newIndex = value.indexOf(over.id)
+        const oldIndex = value.indexOf(active.id as string)
+        const newIndex = value.indexOf(over.id as string)
     
         onChange(arrayMove(value, oldIndex, newIndex))
       }
