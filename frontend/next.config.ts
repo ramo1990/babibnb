@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
         hostname: "platform-lookaside.fbsbx.com",
         pathname: "/**",
       },
+
+      // AWS S3 Bucket
+      {
+        protocol: "https",
+        hostname: "my-airbnb-clone-uploads.s3.us-east-1.amazonaws.com",
+        pathname: "/**",
+      },
     ]
   }
 };
