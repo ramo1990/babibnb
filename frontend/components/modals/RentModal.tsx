@@ -14,7 +14,7 @@ import { citiesByCountry } from '@/lib/cities'
 import { haversineDistance } from '@/lib/distance'
 import { findCountryFromCoords } from '@/lib/findCountry'
 import Counter from '../inputs/Counter'
-import ImageUpload from '../inputs/ImageUpload'
+import MultiImageUpload from '../inputs/ImageUpload'
 
 
 enum STEPS {
@@ -40,7 +40,7 @@ const RentModal = () => {
             guestCount: 1,
             roomCount: 1,
             bathroomCount: 1,
-            images: '', // modele listing de backend
+            images: [], // modele listing de backend
             price: 1,
             title: '',
             description: ''
@@ -224,7 +224,10 @@ const RentModal = () => {
         bodyContent = (
             <div className='flex flex-col gap-8'>
                 <Heading title='Add a photo of your place' subtitle='Show guests what your place looks like!'/>
-                <ImageUpload value={images} onChange={(value) => setCustomValue('images', value)} />
+                <MultiImageUpload 
+                    value={images} 
+                    onChange={(urls) => setCustomValue('images', urls)} 
+                />
             </div>
         )
     }
