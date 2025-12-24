@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
 
 
 User = get_user_model()
@@ -36,7 +37,7 @@ class Listing(models.Model):
     images = models.JSONField(default=list)
 
     # Prix doit etre positif
-    price = models.DecimalField(max_digits=10, decimal_places=2,validators=[MinValueValidator(0.01)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
 
     created_at = models.DateTimeField(auto_now_add=True)
 

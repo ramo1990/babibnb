@@ -67,6 +67,49 @@ const RentModal = () => {
         return countryCode ? citiesByCountry[countryCode] || [] : []
     }, [countryCode])
      
+    // Bloquer le passage au step suivant (validation par étape)
+    const validateCurrentStep = (data: FieldValues, step: STEPS) => {
+        switch (step) {
+          case STEPS.CATEGORY:
+            if (!data.categories || data.categories.length === 0) {
+              toast.error('Please select at least one category')
+              return false
+            }
+            return true
+      
+            case STEPS.LOCATION:
+                if (!data.location) {
+                toast.error('Please select a country')
+                return false
+                }
+                return true // city est optionnelle
+      
+            case STEPS.IMAGES:
+                if (!data.images || data.images.length === 0) {
+                toast.error('Please upload at least one image')
+                return false
+                }
+                return true
+      
+            case STEPS.DESCRIPTION:
+                if (!data.title || !data.description) {
+                toast.error('Please fill title and description')
+                return false
+                }
+                return true
+
+            case STEPS.PRICE:
+                if (!data.price || data.price < 1) {
+                  toast.error('Please enter a valid price greater than 0')
+                  return false
+                }
+                return true
+      
+            default:
+                return true
+        }
+    }
+      
     // trouver la ville la plus proche
     const findClosestCity = (coords: number[], list: {name: string; latlng: number[]} []) => {
         if (!list || list.length === 0) return null
@@ -114,10 +157,6 @@ const RentModal = () => {
     }
 
     const onNext = () => {
-        if (step === STEPS.LOCATION && !location) { 
-            toast.error("Please select a location") 
-            return 
-        }
         setStep((value) => value <STEPS.PRICE ? value + 1 : value)
     }
 
@@ -137,12 +176,11 @@ const RentModal = () => {
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         if (step !== STEPS.PRICE) {
-            // TODO: implement a validateCurrentStep function that checks required fields for each step
             // Validate current step before advancing
-            // const isValid = validateCurrentStep(data, step)
-            // if (!isValid) {
-            //     return
-            // }
+            const isValid = validateCurrentStep(data, step)
+            if (!isValid) {
+                return
+            }
             return onNext()
         }
         setIsLoading(true)
@@ -166,6 +204,7 @@ const RentModal = () => {
         })
     }
 
+    // Clique sur la carte
     const handleMapClick = (coords: number[]) => {
         const [lat, lng] = coords
         const detectedCountry = findCountryFromCoords(lat, lng)
@@ -291,7 +330,13 @@ const RentModal = () => {
         bodyContent = (
             <div className='flex flex-col gap-8'>
                 <Heading title='Now set your price?' subtitle='How much do you charge per night?'/>
-                <Input id='price' label='Price' formatPrice type='number' disabled={isLoading} register={register} errors={errors} required />                
+                <Input id='price' label='Price' type='number' formatPrice  disabled={isLoading} register={register} errors={errors} rules={{
+                    valueAsNumber: true,
+                    min: {
+                    value: 1,
+                    message: 'Price must be at least 1',
+                    },
+                }} required/>                
             </div>
         )
     }
