@@ -67,6 +67,49 @@ const RentModal = () => {
         return countryCode ? citiesByCountry[countryCode] || [] : []
     }, [countryCode])
      
+    // Bloquer le passage au step suivant (validation par étape)
+    const validateCurrentStep = (data: FieldValues, step: STEPS) => {
+        switch (step) {
+          case STEPS.CATEGORY:
+            if (!data.categories || data.categories.length === 0) {
+              toast.error('Please select at least one category')
+              return false
+            }
+            return true
+      
+          case STEPS.LOCATION:
+            if (!data.location) {
+              toast.error('Please select a country')
+              return false
+            }
+            return true // city est optionnelle
+      
+          case STEPS.INFO:
+            if (!data.guestCount || !data.roomCount || !data.bathroomCount) {
+              toast.error('Please fill all info fields')
+              return false
+            }
+            return true
+      
+          case STEPS.IMAGES:
+            if (!data.images || data.images.length === 0) {
+              toast.error('Please upload at least one image')
+              return false
+            }
+            return true
+      
+          case STEPS.DESCRIPTION:
+            if (!data.title || !data.description) {
+              toast.error('Please fill title and description')
+              return false
+            }
+            return true
+      
+          default:
+            return true
+        }
+    }
+      
     // trouver la ville la plus proche
     const findClosestCity = (coords: number[], list: {name: string; latlng: number[]} []) => {
         if (!list || list.length === 0) return null
@@ -137,12 +180,11 @@ const RentModal = () => {
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         if (step !== STEPS.PRICE) {
-            // TODO: implement a validateCurrentStep function that checks required fields for each step
             // Validate current step before advancing
-            // const isValid = validateCurrentStep(data, step)
-            // if (!isValid) {
-            //     return
-            // }
+            const isValid = validateCurrentStep(data, step)
+            if (!isValid) {
+                return
+            }
             return onNext()
         }
         setIsLoading(true)
@@ -166,6 +208,7 @@ const RentModal = () => {
         })
     }
 
+    // Clique sur la carte
     const handleMapClick = (coords: number[]) => {
         const [lat, lng] = coords
         const detectedCountry = findCountryFromCoords(lat, lng)
