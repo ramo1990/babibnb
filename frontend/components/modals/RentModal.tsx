@@ -77,36 +77,36 @@ const RentModal = () => {
             }
             return true
       
-          case STEPS.LOCATION:
-            if (!data.location) {
-              toast.error('Please select a country')
-              return false
-            }
-            return true // city est optionnelle
+            case STEPS.LOCATION:
+                if (!data.location) {
+                toast.error('Please select a country')
+                return false
+                }
+                return true // city est optionnelle
       
-        //   case STEPS.INFO:
-        //     if (!data.guestCount || !data.roomCount || !data.bathroomCount) {
-        //       toast.error('Please fill all info fields')
-        //       return false
-        //     }
-        //     return true
+            case STEPS.IMAGES:
+                if (!data.images || data.images.length === 0) {
+                toast.error('Please upload at least one image')
+                return false
+                }
+                return true
       
-          case STEPS.IMAGES:
-            if (!data.images || data.images.length === 0) {
-              toast.error('Please upload at least one image')
-              return false
-            }
-            return true
+            case STEPS.DESCRIPTION:
+                if (!data.title || !data.description) {
+                toast.error('Please fill title and description')
+                return false
+                }
+                return true
+
+            case STEPS.PRICE:
+                if (!data.price || data.price < 1) {
+                  toast.error('Please enter a valid price greater than 0')
+                  return false
+                }
+                return true
       
-          case STEPS.DESCRIPTION:
-            if (!data.title || !data.description) {
-              toast.error('Please fill title and description')
-              return false
-            }
-            return true
-      
-          default:
-            return true
+            default:
+                return true
         }
     }
       
@@ -330,7 +330,13 @@ const RentModal = () => {
         bodyContent = (
             <div className='flex flex-col gap-8'>
                 <Heading title='Now set your price?' subtitle='How much do you charge per night?'/>
-                <Input id='price' label='Price' formatPrice type='number' disabled={isLoading} register={register} errors={errors} required />                
+                <Input id='price' label='Price' type='number' formatPrice  disabled={isLoading} register={register} errors={errors} rules={{
+                    valueAsNumber: true,
+                    min: {
+                    value: 1,
+                    message: 'Price must be at least 1',
+                    },
+                }} required/>                
             </div>
         )
     }
