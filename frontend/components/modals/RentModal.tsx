@@ -84,12 +84,12 @@ const RentModal = () => {
             }
             return true // city est optionnelle
       
-          case STEPS.INFO:
-            if (!data.guestCount || !data.roomCount || !data.bathroomCount) {
-              toast.error('Please fill all info fields')
-              return false
-            }
-            return true
+        //   case STEPS.INFO:
+        //     if (!data.guestCount || !data.roomCount || !data.bathroomCount) {
+        //       toast.error('Please fill all info fields')
+        //       return false
+        //     }
+        //     return true
       
           case STEPS.IMAGES:
             if (!data.images || data.images.length === 0) {
@@ -157,10 +157,6 @@ const RentModal = () => {
     }
 
     const onNext = () => {
-        if (step === STEPS.LOCATION && !location) { 
-            toast.error("Please select a location") 
-            return 
-        }
         setStep((value) => value <STEPS.PRICE ? value + 1 : value)
     }
 
