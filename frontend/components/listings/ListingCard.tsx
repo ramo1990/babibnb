@@ -60,7 +60,7 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, currentUs
         >
             <div className='flex flex-col gap-2 w-full'>
                 <div className='aspect-square w-full relative overflow-hidden rounded-xl'>
-                    <Image fill alt='Listing' src={data.images[0]} className='object-cover h-full w-full group-hover: scale-110 transition'  />
+                    <Image fill alt='Listing' src={data.images[0]} className='object-cover h-full w-full group-hover:scale-110 transition'  />
                     <div className='absolute top-3 right-3'>
                         <HeartButton listingId={data.id} currentUser={currentUser} />
                     </div>

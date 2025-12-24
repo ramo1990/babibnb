@@ -11,7 +11,7 @@ interface EmptyStateProps {
     showReset?: boolean;
 }
 
-const EmptyState = ({title= 'No exact matches', subtitle='Try changing or removing some of your filtres', showReset}: EmptyStateProps) => {
+const EmptyState = ({title= 'No exact matches', subtitle='Try changing or removing some of your filters', showReset}: EmptyStateProps) => {
     const router = useRouter()
 
     return (
