@@ -16,9 +16,9 @@ import { findCountryFromCoords } from '@/lib/findCountry'
 import Counter from '../inputs/Counter'
 import MultiImageUpload from '../inputs/ImageUpload'
 import Input from '../inputs/Input'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { api } from '@/lib/axios'
 
 
 enum STEPS {
@@ -114,6 +114,10 @@ const RentModal = () => {
     }
 
     const onNext = () => {
+        if (step === STEPS.LOCATION && !location) { 
+            toast.error("Please select a location") 
+            return 
+        }
         setStep((value) => value <STEPS.PRICE ? value + 1 : value)
     }
 
@@ -145,7 +149,7 @@ const RentModal = () => {
 
         // console.log("Data sent to backend:", data)
         
-        axios.post('/api/listing', data)
+        api.post('/listing/', data)
         .then(() => {
             toast.success('Listing created')
             router.refresh()
