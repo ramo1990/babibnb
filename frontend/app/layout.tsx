@@ -31,7 +31,9 @@ export default function RootLayout({
             <RegisterModal />
             <LoginModal />
             <Navbar />
-            {children}
+            <div className="pt-20 pb-20">
+              {children}
+            </div>
           </Providers>
       </body>
     </html>

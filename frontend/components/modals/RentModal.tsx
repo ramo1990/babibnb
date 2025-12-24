@@ -187,7 +187,7 @@ const RentModal = () => {
 
         // console.log("Data sent to backend:", data)
         
-        api.post('/listing/', data)
+        api.post('/listing/create/', data)
         .then(() => {
             toast.success('Listing created')
             router.refresh()
