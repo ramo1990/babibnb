@@ -25,13 +25,14 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={font.className}>
-      {/* <body className={`${font.className} pt-20`}> */}
           <Providers>
             <RentModal />
             <RegisterModal />
             <LoginModal />
             <Navbar />
-            {children}
+            <div className="pt-20 pb-20">
+              {children}
+            </div>
           </Providers>
       </body>
     </html>

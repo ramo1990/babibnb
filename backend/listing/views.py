@@ -4,7 +4,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from .serializers import CreateListingSerializer, ListingSerializer
+from .models import Listing
 
+
+# Vue publique GET
+class ListingListView(APIView):
+    permission_classes = []  # Public
+
+    def get(self, request):
+        listings = Listing.objects.all().order_by("-created_at")
+        serializer = ListingSerializer(listings, many=True)
+        return Response(serializer.data)
+
+# Vue privée POST
 class ListingCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
