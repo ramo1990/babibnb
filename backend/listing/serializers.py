@@ -7,8 +7,8 @@ class ListingSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["owner", "created_at"]
 
-    def create(self, validated_data):
-        return Listing.objects.create(**validated_data)
+    # def create(self, validated_data):
+    #     return Listing.objects.create(**validated_data)
 
 # Serializers personnalisé
 class CreateListingSerializer(serializers.Serializer):
@@ -16,9 +16,11 @@ class CreateListingSerializer(serializers.Serializer):
     title = serializers.CharField()
     description = serializers.CharField()
     categories = serializers.ListField(child=serializers.CharField())
+
     # Champs géographiques
     location = serializers.DictField()
     city = serializers.DictField(allow_null=True)
+    
     # Compteurs
     guestCount = serializers.IntegerField()
     roomCount = serializers.IntegerField()
@@ -44,8 +46,8 @@ class CreateListingSerializer(serializers.Serializer):
             country_code=location["value"],
             country_flag=location["flag"],
             country_region=location["region"],
-            lat=location["latlng"][0],
-            lng=location["latlng"][1],
+            country_lat=location["latlng"][0],
+            country_lng=location["latlng"][1],
 
             city_name=city["name"] if city else None,
             city_lat=city["latlng"][0] if city else None,

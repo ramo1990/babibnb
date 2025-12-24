@@ -11,6 +11,11 @@ class ListingCreateView(APIView):
     def post(self, request):
         serializer = CreateListingSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
-            listing = serializer.save()
-            return Response(ListingSerializer(listing).data, status=status.HTTP_201_CREATED)
+            try:
+                listing = serializer.save()
+                return Response(ListingSerializer(listing).data, status=status.HTTP_201_CREATED)
+            except (KeyError, ValueError, TypeError) as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({'error': "An error occured while creating the listing"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
