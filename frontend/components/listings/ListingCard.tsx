@@ -17,7 +17,6 @@ interface ListingCardProps {
     disabled?: boolean;
     actionLabel?: string;
     actionId: string;
-    // currentUser?: CurrentUserType | null;
 }
 
 // TODO: ajouter un skeleton loader, afficher plusieurs images en carousel

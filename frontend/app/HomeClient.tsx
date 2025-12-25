@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function HomeClient({listings}: Props) {
-  const { currentUser, loadUser } = useAuthStore()
+  const { loadUser } = useAuthStore()
   
   useEffect(() => {
     loadUser()
