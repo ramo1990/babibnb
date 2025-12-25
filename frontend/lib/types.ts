@@ -14,6 +14,7 @@ export interface CurrentUserType {
   email: string
   name: string
   image: string | null
+  favoriteIds: string[];
 }
 
 // Type de listing

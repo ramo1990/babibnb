@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .serializers import RegisterSerializer
+from .serializers import CurrentUserSerializer, RegisterSerializer
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -23,13 +23,16 @@ class RegisterView(APIView):
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        return Response({
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-        })
+    def get(self, request): 
+        serializer = CurrentUserSerializer(request.user) 
+        return Response(serializer.data)
+    # def get(self, request):
+    #     user = request.user
+    #     return Response({
+    #         "id": user.id,
+    #         "name": user.name,
+    #         "email": user.email,
+    #     })
 
 
 User = get_user_model()
