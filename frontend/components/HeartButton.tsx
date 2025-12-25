@@ -1,16 +1,13 @@
-import { CurrentUserType } from '@/lib/types';
-import React from 'react'
+import useFavorite from '@/lib/useFavorite';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 
 
 interface HeartButtonProps {
     listingId: string;
-    currentUser?: CurrentUserType | null;
 }
 
-const HeartButton = ({listingId, currentUser}: HeartButtonProps) => {
-    const hasFavorited = false
-    const toggleFavorite = () => {}
+const HeartButton = ({listingId}: HeartButtonProps) => {
+    const {hasFavorited, toggleFavorite} = useFavorite({listingId})
 
     return (
         <div onClick={toggleFavorite} className='relative hover:opacity-80 transition cursor-pointer'>

@@ -27,3 +27,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             name=validated_data.get('name', '')
         )
         return user
+
+# Favoris
+class CurrentUserSerializer(serializers.ModelSerializer): 
+    favoriteIds = serializers.SerializerMethodField() 
+    
+    class Meta: 
+        model = CustomUser 
+        fields = ('id', 'email', 'name', 'image', 'favoriteIds') 
+    
+    def get_favoriteIds(self, obj): 
+        return [str(listing.id) for listing in obj.favorites.all()]

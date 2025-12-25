@@ -2,6 +2,7 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
+
 # TODO: modifier ton modèle CustomUser pour rendre l’email unique en base
 # TODO : Consider adding a custom validator if users can update their image URL manually:
 class CustomUserManager(BaseUserManager):
@@ -33,7 +34,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # favorite
+    favorites = models.ManyToManyField( "listing.Listing", related_name='favorited_by', blank=True)
 
     objects = CustomUserManager()
 
