@@ -1,11 +1,9 @@
-import { CurrentUserType } from '@/lib/types';
 import useFavorite from '@/lib/useFavorite';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 
 
 interface HeartButtonProps {
     listingId: string;
-    currentUser?: CurrentUserType | null;
 }
 
 const HeartButton = ({listingId}: HeartButtonProps) => {

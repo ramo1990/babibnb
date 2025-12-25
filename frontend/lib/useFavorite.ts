@@ -20,7 +20,6 @@ const useFavorite = ({listingId}: useFavoriteProps) => {
     const currentUser = useAuthStore(state => state.currentUser)
 
     const hasFavorited = useMemo(() => {
-        console.log("CURRENT USER:", currentUser)
         const list = currentUser?.favoriteIds || [];
         return list.includes(listingId)
     }, [currentUser, listingId])
@@ -45,12 +44,15 @@ const useFavorite = ({listingId}: useFavoriteProps) => {
             // Recharger l'utilisateur et mettre à jour Zustand
             const updatedUser = await getCurrentUser() 
             setUser(updatedUser)
+            router.refresh()
 
-            toast.success('Success')
+            // toast.success('Success')
+            toast.success(hasFavorited ? 'Removed from favorites' : 'Added to favorites')
         } catch (error) {
-            toast.error('Something went wrong')
+            // toast.error('Something went wrong')
+            toast.error('Failed to update favorites')
         }
-    }, [currentUser, hasFavorited, listingId, loginModal, setUser])
+    }, [currentUser, hasFavorited, listingId, loginModal, router, setUser])
 
     return {
         hasFavorited, toggleFavorite

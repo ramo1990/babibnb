@@ -7,6 +7,7 @@ from rest_framework import status
 from .serializers import CreateListingSerializer, ListingSerializer
 from accounts.serializers import CurrentUserSerializer  # pour renvoyer l'user à jour
 from .models import Listing
+from django.shortcuts import get_object_or_404
 
 
 # Vue publique GET
@@ -44,18 +45,8 @@ class FavoriteToggleView(APIView):
         """
         user = request.user
 
-        try:
-            # listing_id est un UUID en string
-            listing_uuid = UUID(str(listing_id))
-            listing = Listing.objects.get(id=listing_uuid)
-        except (ValueError, Listing.DoesNotExist):
-            return Response(
-                {"error": "Listing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
+        listing = get_object_or_404(Listing, id=listing_id)
         user.favorites.add(listing)
-        user.save()
 
         return Response(
             CurrentUserSerializer(user).data,
@@ -68,17 +59,8 @@ class FavoriteToggleView(APIView):
         """
         user = request.user
 
-        try:
-            listing_uuid = UUID(str(listing_id))
-            listing = Listing.objects.get(id=listing_uuid)
-        except (ValueError, Listing.DoesNotExist):
-            return Response(
-                {"error": "Listing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
+        listing = get_object_or_404(Listing, id=listing_id)
         user.favorites.remove(listing)
-        user.save()
 
         return Response(
             CurrentUserSerializer(user).data,

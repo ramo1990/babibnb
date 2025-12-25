@@ -17,12 +17,12 @@ interface ListingCardProps {
     disabled?: boolean;
     actionLabel?: string;
     actionId: string;
-    currentUser?: CurrentUserType | null;
+    // currentUser?: CurrentUserType | null;
 }
 
 // TODO: ajouter un skeleton loader, afficher plusieurs images en carousel
 
-const ListingCard = ({data, onAction, disabled, actionLabel, actionId, currentUser}: ListingCardProps) => {
+const ListingCard = ({data, onAction, disabled, actionLabel, actionId}: ListingCardProps) => {
     const router = useRouter()
     const {getByValue} = getCountries()
 
@@ -62,7 +62,7 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, currentUs
                 <div className='aspect-square w-full relative overflow-hidden rounded-xl'>
                     <Image fill alt='Listing' src={data.images[0]} className='object-cover h-full w-full group-hover:scale-110 transition'  />
                     <div className='absolute top-3 right-3'>
-                        <HeartButton listingId={data.id} currentUser={currentUser} />
+                        <HeartButton listingId={data.id} />
                     </div>
                 </div>
 

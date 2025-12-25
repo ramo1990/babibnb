@@ -26,13 +26,6 @@ class MeView(APIView):
     def get(self, request): 
         serializer = CurrentUserSerializer(request.user) 
         return Response(serializer.data)
-    # def get(self, request):
-    #     user = request.user
-    #     return Response({
-    #         "id": user.id,
-    #         "name": user.name,
-    #         "email": user.email,
-    #     })
 
 
 User = get_user_model()
