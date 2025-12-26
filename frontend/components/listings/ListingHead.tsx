@@ -1,5 +1,5 @@
 import getCountries from '@/lib/getCountries';
-import { CurrentUserType } from '@/lib/types';
+// import { CurrentUserType } from '@/lib/types';
 import React from 'react'
 import Heading from '../Heading';
 import Image from 'next/image'
@@ -12,11 +12,11 @@ interface ListingHeadProps {
     city?: string | null
     images: string[];
     id: string;
-    currentUser: CurrentUserType | null
+    // currentUser: CurrentUserType | null
 }
 
 // TODO: optimiser le SEO de cette page &  ajouter un système de partage (comme Airbnb)
-const ListingHead = ({title, locationValue, city, images, id, currentUser}: ListingHeadProps) => {
+const ListingHead = ({title, locationValue, city, images, id}: ListingHeadProps) => {
     const {getByValue} = getCountries()
     const location = getByValue(locationValue)
     const subtitleParts = [ 

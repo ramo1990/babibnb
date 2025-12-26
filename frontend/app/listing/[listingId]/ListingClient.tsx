@@ -14,7 +14,7 @@ interface ListingClientProps {
     currentUser: CurrentUserType | null
 }
 
-// TODO: optimiser la page pour le SEO
+// TODO: optimiser la page pour le SEO, afficher toutes les categories
 
 const ListingClient = ({listing, currentUser}: ListingClientProps) => {
     // Calcul de la catégorie
@@ -33,7 +33,7 @@ const ListingClient = ({listing, currentUser}: ListingClientProps) => {
                         locationValue={listing.country_code}
                         city= {listing.city_name} 
                         id={listing.id} 
-                        currentUser={currentUser}  
+                        // currentUser={currentUser}  
                     />
 
                     <div className='' >

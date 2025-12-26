@@ -1,14 +1,14 @@
 'use client'
 
 import getCountries from '@/lib/getCountries';
-import { CurrentUserType, OwnerType } from '@/lib/types'
+import { OwnerType } from '@/lib/types'
 import React from 'react'
 import { IconType } from 'react-icons';
 import Avatar from '../Avatar';
 import ListingCategory from './ListingCategory';
 import dynamic from 'next/dynamic';
 
-const Map = dynamic(() => import('../Map'), {
+const ListingMap = dynamic(() => import('../Map'), {
     ssr: false
 })
 
@@ -33,15 +33,16 @@ const ListingInfo = ({user, description, guestCount, roomCount, bathroomCount, c
     const country = getByValue(locationValue)
 
     // Si la ville existe → utiliser la ville 
-    const coordinates = cityLat && cityLng
+    const coordinates = (cityLat !== null && cityLng !== null)
         ? [cityLat, cityLng]
         : country?.latlng
         
     return (
         <div className='col-span-4 flex flex-col gap-8'>
+            {/* En tete de l'annonce */}
             <div className="flex flex-col gap-2">
                 <div className='text-xl font-semibold flex flex-row items-center gap-2'>
-                    <div>Hosted by {user?.name}</div>
+                    <div>Hosted by {user.name}</div>
                     <Avatar src={user.image} />
                 </div>
 
@@ -53,17 +54,20 @@ const ListingInfo = ({user, description, guestCount, roomCount, bathroomCount, c
             </div>
             <hr />
 
+            {/* Categories */}
             {category && (
                 <ListingCategory icon={category.icon} label={category.label} description={category.description} />
             )}
             <hr />
-
+            
+            {/* Description de l'annonce */}
             <div className='text-lg font-light text-neutral-500'>
                 {description}
             </div>
             <hr />
             
-            <Map center={coordinates} />
+            {/* La carte */}
+            <ListingMap center={coordinates} />
         </div>
     )
 }

@@ -38,13 +38,14 @@ class ListingCreateView(APIView):
 # Listing detail
 class ListingDetailView(APIView):
     def get(self, request, listing_id):
-        try:
-            listing = Listing.objects.get(id=listing_id)
-        except Listing.DoesNotExist:
-            return Response({"error": "Listing not found"}, status=404)
+        listing = get_object_or_404(Listing, id=listing_id)
+        # try:
+        #     listing = Listing.objects.get(id=listing_id)
+        # except Listing.DoesNotExist:
+        #     return Response({"error": "Listing not found"}, status=404)
 
         serializer = ListingSerializer(listing)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # Favori
 class FavoriteToggleView(APIView):

@@ -20,6 +20,10 @@ const ListingCategory = ({icon: Icon, label, description} : ListingCategoryProps
                     <div className='text-lg font-semibold'>
                         {label}
                     </div>
+
+                    <div className='text-sm text-neutral-500'>
+                        {description}
+                    </div>
                 </div>
             </div>
         </div>
