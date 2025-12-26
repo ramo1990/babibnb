@@ -35,6 +35,17 @@ class ListingCreateView(APIView):
                 return Response({'error': "An error occured while creating the listing"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# Listing detail
+class ListingDetailView(APIView):
+    def get(self, request, listing_id):
+        try:
+            listing = Listing.objects.get(id=listing_id)
+        except Listing.DoesNotExist:
+            return Response({"error": "Listing not found"}, status=404)
+
+        serializer = ListingSerializer(listing)
+        return Response(serializer.data, status=200)
+
 # Favori
 class FavoriteToggleView(APIView):
     permission_classes = [IsAuthenticated]
