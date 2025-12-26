@@ -17,6 +17,13 @@ export interface CurrentUserType {
   favoriteIds: string[];
 }
 
+export interface OwnerType {
+  id: string
+  email: string
+  name: string
+  image: string | null
+}
+
 // Type de listing
 export interface ListingType {
   id: string
@@ -38,4 +45,5 @@ export interface ListingType {
   images: string[]
   price: string
   created_at: string
+  owner: OwnerType
 }
