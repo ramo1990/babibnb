@@ -18,3 +18,12 @@ class ReservationSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ("id", "user", "created_at")
+
+
+class PublicReservationSerializer(serializers.ModelSerializer):
+    startDate = serializers.DateField(source='start_date', format="%Y-%m-%d")
+    endDate = serializers.DateField(source='end_date', format="%Y-%m-%d")
+    
+    class Meta:
+        model = Reservation
+        fields = ["id", "startDate", "endDate"]

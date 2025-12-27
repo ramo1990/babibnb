@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Reservation
-from .serializers import ReservationSerializer
+from .serializers import ReservationSerializer, PublicReservationSerializer
 from listing.models import Listing
 from datetime import datetime
 from django.core.exceptions import ValidationError
@@ -87,7 +87,8 @@ class ReservationsByListingView(APIView):
             return Response({"error": "Listing not found"}, status=status.HTTP_404_NOT_FOUND)
         
         reservations = Reservation.objects.filter(listing_id=listing_id)
-        serializer = ReservationSerializer(reservations, many=True)
+        # serializer = ReservationSerializer(reservations, many=True)
+        serializer = PublicReservationSerializer(reservations, many=True)
         return Response(serializer.data)
 
 
