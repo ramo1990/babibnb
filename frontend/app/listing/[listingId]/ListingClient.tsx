@@ -6,7 +6,7 @@ import ListingInfo from '@/components/listings/ListingInfo'
 import ListingReservation from '@/components/listings/ListingReservation'
 import { categoryItems } from '@/components/navbar/Categories'
 import { api } from '@/lib/axios'
-import { CurrentUserType, ListingType, Reservation } from '@/lib/types'
+import { CurrentUserType, ListingType, ReservationType } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
 import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns'
 import { useRouter } from 'next/navigation'
@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 import { Range } from 'react-date-range'
 
 interface ListingClientProps {
-    reservations?: Reservation[]
+    reservations?: ReservationType[]
     listing: ListingType
     currentUser: CurrentUserType | null
 }
@@ -39,10 +39,10 @@ const ListingClient = ({listing, currentUser, reservations=[]}: ListingClientPro
         let dates: Date[] = []
 
         reservations.forEach((reservation) => {
-            const range = eachDayOfInterval({
-                start: new Date(reservation.startDate),
-                end: new Date(reservation.endDate),
-            })
+            const start = new Date(reservation.startDate + "T00:00:00")
+            const end = new Date(reservation.endDate + "T00:00:00")
+
+            const range = eachDayOfInterval({ start, end })
             dates = [...dates, ...range]
         })
         return dates
@@ -59,11 +59,13 @@ const ListingClient = ({listing, currentUser, reservations=[]}: ListingClientPro
             return loginModal.onOpen()
         }
         setIsLoading(true)
+        
+        const formatDate = (date: Date) => date.toLocaleDateString('en-CA') // YYYY-MM-DD
 
         api.post('/reservations/', {
             totalPrice, 
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
+            startDate: formatDate(dateRange.startDate!),
+            endDate: formatDate(dateRange.endDate!),
             listingId: listing?.id,
         })
         .then(() => {

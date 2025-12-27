@@ -11,7 +11,6 @@ interface CalendarProps {
     disabledDates?: Date[]
 }
 
-// gerer plusieurs plages de dates c'est à dire 29 dec - 2 jan: glissement sur le mois
 const Calendar = ({onChange, value, disabledDates }: CalendarProps) => {
   return (
     <DateRange 

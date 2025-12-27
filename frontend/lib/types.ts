@@ -49,7 +49,7 @@ export interface ListingType {
 }
 
 // Type reservation
-export interface Reservation {
+export interface ReservationType {
   id: string
   userId: string
   listingId: string
