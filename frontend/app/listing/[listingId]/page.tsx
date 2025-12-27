@@ -26,17 +26,28 @@ export default function ListingPage ( {params}: {params: Promise<IParams> }) {
   useEffect(() => {
     setIsLoading(true)
   
-    Promise.all([
+    Promise.allSettled([
       getListingById(listingId),
       getCurrentUser(),
       getReservationsByListing(listingId)
     ])
-      .then(([listingData, userData, reservationsData]) => {
-        setListing(listingData)
-        setCurrentUser(userData)
-        setReservations(reservationsData)
+      .then((results) => {
+        const [listingResult, userResult, reservationsResult] = results
+
+        if (listingResult.status === 'fulfilled') {
+          setListing(listingResult.value)
+        }
+        if (userResult.status === 'fulfilled') {
+          setCurrentUser(userResult.value)
+        }
+        if (reservationsResult.status === 'fulfilled') {
+         setReservations(reservationsResult.value)
+        }
+
+        if (listingResult.status === 'rejected') {
+          setError("Failed to load listing")
+        }
       })
-      .catch(() => setError("Failed to load data"))
       .finally(() => setIsLoading(false))
   }, [listingId])
   

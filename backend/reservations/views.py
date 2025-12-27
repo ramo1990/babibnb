@@ -19,7 +19,13 @@ class CreateReservationView(APIView):
 
         if not listing_id:
             return Response({"error": "listingId is required"}, status=400)
-
+        
+        if not raw_start or not raw_end:
+            return Response({"error": "startDate and endDate are required"}, status=400)
+   
+        if not total:
+            return Response({"error": "totalPrice is required"}, status=400)
+        
         try:
             listing = Listing.objects.get(id=listing_id)
         except Listing.DoesNotExist:
@@ -29,14 +35,29 @@ class CreateReservationView(APIView):
         try: 
             start = datetime.strptime(raw_start, "%Y-%m-%d").date() 
             end = datetime.strptime(raw_end, "%Y-%m-%d").date() 
-        except Exception: 
+        except (ValueError, TypeError): 
             return Response({"error": "Invalid date format"}, status=400)
         
+        # Validate date range
+        if start >= end:
+            return Response({"error": "End date must be after start date"}, status=400)
+   
+        if start < datetime.now().date():
+            return Response({"error": "Start date cannot be in the past"}, status=400)
+   
+        # Validate price
+        try:
+            total_price = float(total)
+            if total_price <= 0:
+                return Response({"error": "Total price must be positive"}, status=400)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid total price"}, status=400)
+
         # Vérifier si les dates sont déjà réservées
         overlapping = Reservation.objects.filter(
             listing=listing,
-            startDate__lte=end,
-            endDate__gte=start
+            start_date__lte=end,
+            end_date__gte=start
         ).exists()
 
         if overlapping:
@@ -45,9 +66,9 @@ class CreateReservationView(APIView):
         reservation = Reservation.objects.create(
             user=request.user,
             listing=listing,
-            startDate=start,
-            endDate=end,
-            totalPrice=total
+            start_date=start,
+            end_date=end,
+            total_price=total_price
         )
 
         return Response(ReservationSerializer(reservation).data, status=201)
@@ -55,6 +76,11 @@ class CreateReservationView(APIView):
 
 class ReservationsByListingView(APIView):
     def get(self, request, listing_id):
+        try:
+            Listing.objects.get(id=listing_id)
+        except Listing.DoesNotExist:
+            return Response({"error": "Listing not found"}, status=status.HTTP_404_NOT_FOUND)
+        
         reservations = Reservation.objects.filter(listing_id=listing_id)
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)

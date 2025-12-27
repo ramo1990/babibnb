@@ -8,7 +8,7 @@ import { categoryItems } from '@/components/navbar/Categories'
 import { api } from '@/lib/axios'
 import { CurrentUserType, ListingType, ReservationType } from '@/lib/types'
 import useLoginModal from '@/lib/useLoginModal'
-import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns'
+import { differenceInCalendarDays, eachDayOfInterval, parseISO, startOfDay } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -39,8 +39,8 @@ const ListingClient = ({listing, currentUser, reservations=[]}: ListingClientPro
         let dates: Date[] = []
 
         reservations.forEach((reservation) => {
-            const start = new Date(reservation.startDate + "T00:00:00")
-            const end = new Date(reservation.endDate + "T00:00:00")
+            const start = startOfDay(parseISO(reservation.startDate))
+            const end = startOfDay(parseISO(reservation.endDate))
 
             const range = eachDayOfInterval({ start, end })
             dates = [...dates, ...range]
@@ -58,14 +58,23 @@ const ListingClient = ({listing, currentUser, reservations=[]}: ListingClientPro
         if (!currentUser) {
             return loginModal.onOpen()
         }
+        if (!dateRange.startDate || !dateRange.endDate) {
+            toast.error('Please select dates')
+            return
+        }
+        if (dateRange.startDate >= dateRange.endDate) {
+            toast.error('End date must be after start date')
+            return
+        }
+
         setIsLoading(true)
         
         const formatDate = (date: Date) => date.toLocaleDateString('en-CA') // YYYY-MM-DD
 
         api.post('/reservations/', {
             totalPrice, 
-            startDate: formatDate(dateRange.startDate!),
-            endDate: formatDate(dateRange.endDate!),
+            startDate: formatDate(dateRange.startDate),
+            endDate: formatDate(dateRange.endDate),
             listingId: listing?.id,
         })
         .then(() => {

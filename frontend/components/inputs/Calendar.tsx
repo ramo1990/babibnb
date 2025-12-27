@@ -11,17 +11,19 @@ interface CalendarProps {
     disabledDates?: Date[]
 }
 
+const today = new Date()
+
 const Calendar = ({onChange, value, disabledDates }: CalendarProps) => {
   return (
     <DateRange 
         rangeColors={["#262626"]}
         ranges={[value]}
-        date={new Date()}
+        date={today}
         onChange={onChange}
         direction='vertical'
         // months={2}
         showDateDisplay={false}
-        minDate={new Date()}
+        minDate={today}
         disabledDates={disabledDates}
     />
   )
