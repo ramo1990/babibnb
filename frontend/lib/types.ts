@@ -43,7 +43,18 @@ export interface ListingType {
   room_count: number
   bathroom_count: number
   images: string[]
-  price: string
+  price: number
   created_at: string
   owner: OwnerType
+}
+
+// Type reservation
+export interface ReservationType {
+  id: string
+  userId: string
+  listingId: string
+  startDate: string
+  endDate: string
+  totalPrice: number
+  created_at: string
 }

@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     
     'accounts',
     'listing',
+    'reservations',
 ]
 
 CORS_ALLOWED_ORIGINS = [
