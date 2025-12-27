@@ -7,6 +7,7 @@ from .models import Reservation
 from .serializers import ReservationSerializer
 from listing.models import Listing
 from datetime import datetime
+from django.core.exceptions import ValidationError
 
 
 class CreateReservationView(APIView):
@@ -64,13 +65,16 @@ class CreateReservationView(APIView):
         if overlapping:
             return Response({"error": "Dates already reserved"}, status=400)
 
-        reservation = Reservation.objects.create(
-            user=request.user,
-            listing=listing,
-            start_date=start,
-            end_date=end,
-            total_price=total_price
-        )
+        try:
+            reservation = Reservation.objects.create(
+                user=request.user,
+                listing=listing,
+                start_date=start,
+                end_date=end,
+                total_price=total_price
+            )
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=400)
 
         return Response(ReservationSerializer(reservation).data, status=201)
 

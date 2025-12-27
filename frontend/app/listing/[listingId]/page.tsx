@@ -39,6 +39,8 @@ export default function ListingPage ( {params}: {params: Promise<IParams> }) {
           if (!listingResult.value) {
             setError("Failed to load listing")
           }
+        } else {
+          setError("Failed to load listing")
         }
         if (userResult.status === 'fulfilled') {
           setCurrentUser(userResult.value)
