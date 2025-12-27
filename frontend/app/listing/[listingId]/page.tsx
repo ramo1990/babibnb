@@ -36,16 +36,15 @@ export default function ListingPage ( {params}: {params: Promise<IParams> }) {
 
         if (listingResult.status === 'fulfilled') {
           setListing(listingResult.value)
+          if (!listingResult.value) {
+            setError("Failed to load listing")
+          }
         }
         if (userResult.status === 'fulfilled') {
           setCurrentUser(userResult.value)
         }
         if (reservationsResult.status === 'fulfilled') {
          setReservations(reservationsResult.value)
-        }
-
-        if (listingResult.status === 'rejected') {
-          setError("Failed to load listing")
         }
       })
       .finally(() => setIsLoading(false))

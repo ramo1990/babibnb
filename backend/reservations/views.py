@@ -1,3 +1,4 @@
+from decimal import Decimal, InvalidOperation
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -47,17 +48,17 @@ class CreateReservationView(APIView):
    
         # Validate price
         try:
-            total_price = float(total)
+            total_price = Decimal(str(total))
             if total_price <= 0:
                 return Response({"error": "Total price must be positive"}, status=400)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidOperation):
             return Response({"error": "Invalid total price"}, status=400)
 
         # Vérifier si les dates sont déjà réservées
         overlapping = Reservation.objects.filter(
             listing=listing,
-            start_date__lte=end,
-            end_date__gte=start
+            start_date__lt=end,
+            end_date__gt=start
         ).exists()
 
         if overlapping:

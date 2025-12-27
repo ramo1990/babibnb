@@ -43,7 +43,8 @@ const ListingClient = ({listing, currentUser, reservations=[]}: ListingClientPro
             const end = startOfDay(parseISO(reservation.endDate))
 
             const range = eachDayOfInterval({ start, end })
-            dates = [...dates, ...range]
+            // dates = [...dates, ...range]
+            dates.push(...range)
         })
         return dates
     }, [reservations])
