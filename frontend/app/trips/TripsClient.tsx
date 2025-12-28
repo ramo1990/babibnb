@@ -36,7 +36,7 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
         .finally (() => {
             setDeletingId("")
         })
-    }, [router])
+    }, [])
 
     return (
         <Container>

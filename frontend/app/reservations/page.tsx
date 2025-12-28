@@ -27,10 +27,16 @@ const ReservationsPage = () => {
             setHostReservations(host)
             setLoading(false)
         } 
-            loadData()
-        }, [])
+        loadData()
+    }, [])
     
-    if (loading) return null
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-[60vh]">
+                <span>Loading...</span>
+            </div>
+        )
+    }
 
     if (!currentUser) {
         return (

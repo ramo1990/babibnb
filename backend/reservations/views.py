@@ -110,7 +110,7 @@ class CancelReservationView(APIView):
 
     def delete(self, request, pk):
         try:
-            reservation = Reservation.objects.get(pk=pk)
+            reservation = Reservation.objects.select_related('listing').get(pk=pk)
         except Reservation.DoesNotExist:
             return Response(
                 {"error": "Reservation not found"},
