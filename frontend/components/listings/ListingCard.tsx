@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import React, { useCallback, useMemo } from 'react'
 import {format} from 'date-fns'
 import Image from 'next/image'
-import { CurrentUserType, ListingType } from '@/lib/types';
+import { ListingType, ReservationType } from '@/lib/types';
 import HeartButton from '../HeartButton';
 import { Button } from '../ui/button';
 
 
 interface ListingCardProps {
     data: ListingType;
-    // reservation?: Reservation;
+    reservation?: ReservationType;
     onAction?: (id: string) => void;
     disabled?: boolean;
     actionLabel?: string;
@@ -21,7 +21,7 @@ interface ListingCardProps {
 
 // TODO: ajouter un skeleton loader, afficher plusieurs images en carousel
 
-const ListingCard = ({data, onAction, disabled, actionLabel, actionId}: ListingCardProps) => {
+const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation}: ListingCardProps) => {
     const router = useRouter()
     const {getByValue} = getCountries()
 
@@ -35,22 +35,22 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId}: ListingC
         onAction?.(actionId)
     }, [onAction, actionId, disabled])
 
-    // const price = useMemo(() => {
-    //     if (reservation) {
-    //         return reservation.totalPrice;
-    //     }
-    //     return data.price
-    // }, [reservation, data.price])
+    const price = useMemo(() => {
+        if (reservation) {
+            return reservation.totalPrice;
+        }
+        return data.price
+    }, [reservation, data.price])
 
-    // const reservationDate = useMemo(() => {
-    //     if (!reservation) {
-    //         return null;
-    //     }
-    //     const start = new Date(resevation.startDate)
-    //     const end = new Date(resevation.endDate)
+    const reservationDate = useMemo(() => {
+        if (!reservation) {
+            return null;
+        }
+        const start = new Date(reservation.startDate)
+        const end = new Date(reservation.endDate)
 
-    //     return `${format(start, 'PP')} - ${format(end, 'PP')}`
-    // }, [reservation])
+        return `${format(start, 'PP')} - ${format(end, 'PP')}`
+    }, [reservation])
 
     return (
         <div 
@@ -70,23 +70,23 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId}: ListingC
                 </div>
 
                 <div className='font-light text-neutral-500'>
-                    {/* {reservationDate || data.categories} */} 
-                    {data.categories}
+                    {reservationDate || data.categories} 
+                    {/* {data.categories} */}
                 </div>
 
                 <div className='flex flex-row items-center gap-1'>
                     <div className='font-semibold'>
                         {data.price} $
                     </div>
-                    {/* <div>
+                    <div>
                         {!reservation && (
-                            <div className='font-light'>night</div>
+                            <div className='font-light'>per night</div>
                         )}
-                    </div> */}
+                    </div>
                 </div>
 
                 {onAction && actionLabel && (
-                    <Button disabled size='sm' label={actionLabel} onClick={handleCancel} />
+                    <Button disabled={disabled} size='sm' label={actionLabel} onClick={handleCancel} />
                 )}
             </div>
         </div>

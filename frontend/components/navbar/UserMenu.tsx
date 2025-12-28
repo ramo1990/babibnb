@@ -10,9 +10,11 @@ import toast from 'react-hot-toast'
 import useAuthStore from '@/lib/useAuthStore'
 import { useSession } from "next-auth/react"
 import useRentModal from '@/lib/useRentModal'
+import { useRouter } from 'next/navigation'
 
 
 const UserMenu = () => {
+    const router = useRouter()
     const { data: session } = useSession()
     const { currentUser, logout } = useAuthStore()
     const registerModal = useRegisterModal()
@@ -79,7 +81,7 @@ const UserMenu = () => {
                         {/* si le user en connecté */}
                         {currentUser ? (
                             <>
-                                <MenuItem onClick={() => {}} label= 'My trips' />
+                                <MenuItem onClick={() => router.push("/trips/")} label= 'My trips' />
                                 <MenuItem onClick={() => {}} label= 'My favorites' />
                                 <MenuItem onClick={() => {}} label= 'My reservations' />
                                 <MenuItem onClick={() => {}} label= 'My properties' />

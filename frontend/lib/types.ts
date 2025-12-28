@@ -53,6 +53,7 @@ export interface ReservationType {
   id: string
   userId: string
   listingId: string
+  listing: ListingType
   startDate: string
   endDate: string
   totalPrice: number
