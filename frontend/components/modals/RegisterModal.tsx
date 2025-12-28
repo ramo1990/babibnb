@@ -41,7 +41,7 @@ const RegisterModal = () => {
           await api.post('/register/', data)
           console.log('Inscription réussie')
           
-          //   Login automatique
+          //   Login automatique après enregistrement
           const tokensRes = await api.post('/login/', {
             email: data.email,
             password: data.password,

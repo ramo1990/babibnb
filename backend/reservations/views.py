@@ -104,7 +104,7 @@ class UserReservationsView(APIView):
         return Response(serializer.data)
 
 # Annulation d’une réservation
-# TODO: un système de remboursement; une règle empêchant d’annuler une réservation déjà passée
+# TODO: un système de remboursement; notifier le hote ou le voyageur en cas d'annulation 
 class CancelReservationView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -117,8 +117,8 @@ class CancelReservationView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Vérifier que l'utilisateur est bien le propriétaire
-        if reservation.user != request.user:
+        # Vérifier que l'utilisateur est bien le propriétaire ou l'hote
+        if reservation.user != request.user and reservation.listing.owner != request.user:
             return Response(
                 {"error": "You are not allowed to cancel this reservation"},
                 status=status.HTTP_403_FORBIDDEN
@@ -131,9 +131,19 @@ class CancelReservationView(APIView):
                 {"error": "Cannot cancel a reservation that has already started or passed"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         reservation.delete()
 
         return Response(
             {"message": "Reservation cancelled successfully"},
             status=status.HTTP_200_OK
         )
+
+# Réservation de l'hote
+class HostReservationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        reservations = Reservation.objects.filter(listing__owner=request.user).exclude(user=request.user).select_related("listing")
+        serializer = ReservationSerializer(reservations, many=True)
+        return Response(serializer.data)
