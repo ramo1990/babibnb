@@ -4,19 +4,16 @@ import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
 import { api } from '@/lib/axios'
-import { CurrentUserType, ReservationType } from '@/lib/types'
-import { useRouter } from 'next/navigation'
+import { ReservationType } from '@/lib/types'
 import React, { useCallback, useState } from 'react'
 import toast from 'react-hot-toast'
 
 
-interface TripsClientProps {
+interface ReservationsClientProps {
     reservations: ReservationType[]
-    currentUser?: CurrentUserType | null
 }
 
-const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
-    const router = useRouter()
+const ReservationsClient = ({reservations }: ReservationsClientProps) => {
     const [deletingId, setDeletingId] = useState("")
     const [items, setItems] = useState(reservations)
 
@@ -40,7 +37,7 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
 
     return (
         <Container>
-            <Heading title='Trips' subtitle="Where you've been and where you're going" />
+            <Heading title='Reservations' subtitle="Bookings on your properties" />
 
             <div className='mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8'>
                 {items.map((reservation) => (
@@ -51,7 +48,7 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
                         actionId={reservation.id}
                         onAction={onCancel}
                         disabled={deletingId === reservation.id}
-                        actionLabel='Cancel reservation'
+                        actionLabel='Cancel guest reservation'
                     />
                 ))}
             </div>
@@ -59,4 +56,4 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
     )
 }
 
-export default TripsClient
+export default ReservationsClient

@@ -23,4 +23,14 @@ export async function getUserReservations(): Promise<ReservationType[]> {
       return []
     }
 }
-  
+
+// récupérer les réservations du hote
+export async function getHostReservations(): Promise<ReservationType[]> {
+  try {
+    const response = await api.get("/reservations/host/")
+    return response.data
+  } catch (error) {
+    console.error("Error fetching host reservations:", error)
+    return []
+  }
+}
