@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from .models import Reservation
+from listing.serializers import ListingSerializer
 
 class ReservationSerializer(serializers.ModelSerializer):
     startDate = serializers.DateField(source='start_date', format="%Y-%m-%d")
     endDate = serializers.DateField(source='end_date', format="%Y-%m-%d")
     totalPrice = serializers.DecimalField(source='total_price', max_digits=10, decimal_places=2)
+    listing = ListingSerializer(read_only=True)
     
     class Meta:
         model = Reservation

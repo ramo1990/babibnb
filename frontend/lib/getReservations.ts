@@ -14,13 +14,13 @@ export async function getReservationsByListing(listingId: string): Promise<Reser
 }
 
 // récupérer les réservations de l’utilisateur connecté
-// export async function getUserReservations(): Promise<ReservationType[]> {
-//     try {
-//       const response = await api.get(`/reservations/me/`)
-//       return response.data
-//     } catch (error) {
-//       console.error("Error fetching user reservations:", error)
-//       return []
-//     }
-// }
+export async function getUserReservations(): Promise<ReservationType[]> {
+    try {
+      const response = await api.get(`/reservations/me/`)
+      return response.data
+    } catch (error) {
+      console.error("Error fetching user reservations:", error)
+      return []
+    }
+}
   
