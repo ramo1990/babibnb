@@ -29,7 +29,7 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
             router.refresh()
         })
         .catch((error) => {
-            toast.error(error?.response?.data.error)
+            toast.error(error?.response?.data?.error || 'Failed to cancel reservation')
         })
         .finally (() => {
             setDeletingId("")

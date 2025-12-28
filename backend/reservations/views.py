@@ -96,6 +96,6 @@ class UserReservationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        reservations = Reservation.objects.filter(user=request.user)
+        reservations = Reservation.objects.filter(user=request.user).select_related('listing')
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)

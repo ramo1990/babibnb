@@ -5,12 +5,13 @@ import { getCurrentUser } from '@/lib/getCurrentUser'
 import { getUserReservations } from '@/lib/getReservations'
 import React, { useEffect, useState } from 'react'
 import TripsClient from './TripsClient'
+import { CurrentUserType, ReservationType } from '@/lib/types'
 
 
 const TripsPage = () => {
 
-    const [currentUser, setCurrentUser] = useState<any>(null)
-    const [reservations, setReservations] = useState<any[]>([])
+    const [currentUser, setCurrentUser] = useState<CurrentUserType | null>(null)
+    const [reservations, setReservations] = useState<ReservationType[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -28,7 +29,14 @@ const TripsPage = () => {
         loadData()
     }, [])
     
-    if (loading) return null
+    // Skeleton
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div>Loading...</div>
+            </div>
+        )
+    }
 
     if (!currentUser) {
         return (

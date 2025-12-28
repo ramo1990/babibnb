@@ -81,7 +81,7 @@ const UserMenu = () => {
                         {/* si le user en connecté */}
                         {currentUser ? (
                             <>
-                                <MenuItem onClick={() => router.push("/trips/")} label= 'My trips' />
+                                <MenuItem onClick={() => { router.push("/trips"); setIsOpen(false) }} label= 'My trips' />
                                 <MenuItem onClick={() => {}} label= 'My favorites' />
                                 <MenuItem onClick={() => {}} label= 'My reservations' />
                                 <MenuItem onClick={() => {}} label= 'My properties' />

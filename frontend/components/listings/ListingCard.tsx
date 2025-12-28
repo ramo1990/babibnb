@@ -76,7 +76,7 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
 
                 <div className='flex flex-row items-center gap-1'>
                     <div className='font-semibold'>
-                        {data.price} $
+                        {price} $
                     </div>
                     <div>
                         {!reservation && (
