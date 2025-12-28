@@ -8,6 +8,7 @@ from .serializers import ReservationSerializer, PublicReservationSerializer
 from listing.models import Listing
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 # Création d’une réservation
@@ -123,6 +124,13 @@ class CancelReservationView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        # Prevent cancellation of past or ongoing reservations
+        today = timezone.now().date()
+        if reservation.start_date <= today:
+            return Response(
+                {"error": "Cannot cancel a reservation that has already started or passed"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         reservation.delete()
 
         return Response(
