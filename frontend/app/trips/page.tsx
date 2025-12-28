@@ -13,18 +13,24 @@ const TripsPage = () => {
     const [currentUser, setCurrentUser] = useState<CurrentUserType | null>(null)
     const [reservations, setReservations] = useState<ReservationType[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         const loadData = async () => {
-          const user = await getCurrentUser()
-          if (!user) {
-            setLoading(false)
-            return
-          }
-          const res = await getUserReservations()
-          setCurrentUser(user)
-          setReservations(res)
-          setLoading(false)
+            try {
+                const user = await getCurrentUser()
+                if (!user) {
+                    setLoading(false)
+                    return
+                }
+                const res = await getUserReservations()
+                setCurrentUser(user)
+                setReservations(res)
+            } catch (err) {
+                setError("Failed to load your trips. Please try again.")
+            } finally {
+                setLoading(false)
+            }
         }
         loadData()
     }, [])
@@ -38,6 +44,12 @@ const TripsPage = () => {
         )
     }
 
+    if (error) {
+        return (
+            <EmptyState title='Error' subtitle={error} />
+        )
+    }
+    
     if (!currentUser) {
         return (
             <EmptyState title='Unauthorized' subtitle='Please login' />
