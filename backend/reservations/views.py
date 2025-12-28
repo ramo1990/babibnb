@@ -10,6 +10,8 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 
 
+# Création d’une réservation
+# TODO: ajouter un email de confirmation
 class CreateReservationView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -78,7 +80,7 @@ class CreateReservationView(APIView):
 
         return Response(ReservationSerializer(reservation).data, status=201)
 
-
+# Réservations d’un listing
 class ReservationsByListingView(APIView):
     def get(self, request, listing_id):
         try:
@@ -91,7 +93,7 @@ class ReservationsByListingView(APIView):
         serializer = PublicReservationSerializer(reservations, many=True)
         return Response(serializer.data)
 
-
+# Réservations de l’utilisateur
 class UserReservationsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -99,3 +101,31 @@ class UserReservationsView(APIView):
         reservations = Reservation.objects.filter(user=request.user).select_related('listing')
         serializer = ReservationSerializer(reservations, many=True)
         return Response(serializer.data)
+
+# Annulation d’une réservation
+# TODO: un système de remboursement; une règle empêchant d’annuler une réservation déjà passée
+class CancelReservationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            reservation = Reservation.objects.get(pk=pk)
+        except Reservation.DoesNotExist:
+            return Response(
+                {"error": "Reservation not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Vérifier que l'utilisateur est bien le propriétaire
+        if reservation.user != request.user:
+            return Response(
+                {"error": "You are not allowed to cancel this reservation"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        reservation.delete()
+
+        return Response(
+            {"message": "Reservation cancelled successfully"},
+            status=status.HTTP_200_OK
+        )
