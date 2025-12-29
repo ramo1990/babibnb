@@ -7,6 +7,6 @@ export async function getFavoriteListings(): Promise<ListingType[]> {
     return response.data
   } catch (error) {
     console.error("Error fetching favorite listings:", error)
-    return []
+    throw error
   }
 }

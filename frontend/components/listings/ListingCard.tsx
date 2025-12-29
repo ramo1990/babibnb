@@ -25,7 +25,6 @@ interface ListingCardProps {
 
 const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation, currentUser, onFavoriteToggle}: ListingCardProps) => {
     const router = useRouter()
-    const isFavorite = currentUser?.favoriteIds?.includes(data.id)
     const {getByValue} = getCountries()
 
     const location = getByValue(data.country_code)

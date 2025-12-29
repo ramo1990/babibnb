@@ -43,13 +43,18 @@ const useFavorite = ({listingId}: useFavoriteProps) => {
 
             // Recharger l'utilisateur et mettre à jour Zustand
             const updatedUser = await getCurrentUser() 
-            setUser(updatedUser)
+            if (updatedUser) {
+                setUser(updatedUser)
+            }
             router.refresh()
 
             toast.success(hasFavorited ? 'Removed from favorites' : 'Added to favorites')
 
         } catch (error) {
-            toast.error('Failed to update favorites')
+            const message = error instanceof Error 
+                ? `Failed to update favorites: ${error.message}` 
+                : 'Failed to update favorites'
+            toast.error(message)
         }
     }, [currentUser, hasFavorited, listingId, loginModal, router, setUser])
 

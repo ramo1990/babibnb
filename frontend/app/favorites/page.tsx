@@ -8,7 +8,7 @@ import { CurrentUserType, ListingType } from '@/lib/types'
 import FavoriteClient from './FavoriteClient'
 
 
-const ListingPage = () => {
+const FavoritesPage = () => {
 
     const [currentUser, setCurrentUser] = useState<CurrentUserType | null>(null)
     const [favorites, setFavorites] = useState<ListingType[]>([])
@@ -67,4 +67,4 @@ const ListingPage = () => {
     )
 }
 
-export default ListingPage
+export default FavoritesPage
