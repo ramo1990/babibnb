@@ -3,12 +3,10 @@
 import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
-import { api } from '@/lib/axios'
 import { CurrentUserType, ReservationType } from '@/lib/types'
 import { useReservationCancellation } from '@/lib/useReservationCancellation'
 import { useRouter } from 'next/navigation'
-import React, { useCallback, useState } from 'react'
-import toast from 'react-hot-toast'
+import React, { useState } from 'react'
 
 
 interface TripsClientProps {
@@ -25,7 +23,7 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
     // TODO: afficher un loader pendant la suppression
     const onCancel = (id: string) => {
         cancelReservation(id, () => {
-            setItems(prev => prev.filter(item => item.id != id))
+            setItems(prev => prev.filter(item => item.id !== id))
         })
     }
 

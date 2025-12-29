@@ -3,11 +3,9 @@
 import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
-import { api } from '@/lib/axios'
 import { ReservationType } from '@/lib/types'
 import { useReservationCancellation } from '@/lib/useReservationCancellation'
-import React, { useCallback, useState } from 'react'
-import toast from 'react-hot-toast'
+import React, { useState } from 'react'
 
 
 interface ReservationsClientProps {
@@ -22,7 +20,7 @@ const ReservationsClient = ({reservations }: ReservationsClientProps) => {
     // TODO: afficher un loader pendant la suppression
     const onCancel = (id: string) => {
         cancelReservation(id, () => {
-            setItems(prev => prev.filter(item => item.id != id))
+            setItems(prev => prev.filter(item => item.id !== id))
         })
     }
 
