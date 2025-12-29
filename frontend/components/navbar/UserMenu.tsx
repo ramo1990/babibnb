@@ -82,7 +82,7 @@ const UserMenu = () => {
                         {currentUser ? (
                             <>
                                 <MenuItem onClick={() => { router.push("/trips"); setIsOpen(false) }} label= 'My trips' />
-                                <MenuItem onClick={() => {}} label= 'My favorites' />
+                                <MenuItem onClick={() => { router.push("/favorites"); setIsOpen(false) }} label= 'My favorites' />
                                 <MenuItem onClick={() => { router.push("/reservations"); setIsOpen(false) }} label= 'My reservations' />
                                 <MenuItem onClick={() => {}} label= 'My properties' />
                                 <MenuItem onClick={rentModal.onOpen} label= 'Airbnb my home' />
