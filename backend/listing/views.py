@@ -1,7 +1,7 @@
 from uuid import UUID
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
 
 from .serializers import CreateListingSerializer, ListingSerializer
@@ -37,12 +37,25 @@ class ListingCreateView(APIView):
 
 # Listing detail
 class ListingDetailView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
     def get(self, request, listing_id):
         listing = get_object_or_404(Listing, id=listing_id)
-
         serializer = ListingSerializer(listing)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # TODO: empêcher la suppression si le listing a des réservations en cours
+    def delete(self, request, listing_id):
+        listing = get_object_or_404(Listing, id=listing_id)
+        # Vérifier que l'utilisateur est bien le propriétaire 
+        if listing.owner != request.user: 
+            return Response( 
+                {"error": "You are not allowed to delete this listing."}, 
+                status=status.HTTP_403_FORBIDDEN 
+            )
+        listing.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 # Favori
 class FavoriteToggleView(APIView):
     permission_classes = [IsAuthenticated]
@@ -88,3 +101,12 @@ class FavoriteListView(APIView):
 
         serializer = ListingSerializer(favorites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# Le propriété
+class UserListingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        listings = Listing.objects.filter(owner=request.user)
+        serializer = ListingSerializer(listings, many=True)
+        return Response(serializer.data)
