@@ -3,11 +3,10 @@
 import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
-import { api } from '@/lib/axios'
 import { CurrentUserType, ReservationType } from '@/lib/types'
+import { useReservationCancellation } from '@/lib/useReservationCancellation'
 import { useRouter } from 'next/navigation'
-import React, { useCallback, useState } from 'react'
-import toast from 'react-hot-toast'
+import React, { useState } from 'react'
 
 
 interface TripsClientProps {
@@ -17,26 +16,16 @@ interface TripsClientProps {
 
 const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
     const router = useRouter()
-    const [deletingId, setDeletingId] = useState("")
     const [items, setItems] = useState(reservations)
+    const { deletingId, cancelReservation } = useReservationCancellation()
 
     // annulation d’une réservation
     // TODO: afficher un loader pendant la suppression
-    const onCancel = useCallback((id: string) => {
-        setDeletingId(id);
-
-        api.delete(`/reservations/${id}/`)
-        .then(() => {
-            toast.success('Reservation cancelled')
-            setItems((prev) => prev.filter((item) => item.id !== id))
+    const onCancel = (id: string) => {
+        cancelReservation(id, () => {
+            setItems(prev => prev.filter(item => item.id !== id))
         })
-        .catch((error) => {
-            toast.error(error?.response?.data?.error || 'Failed to cancel reservation')
-        })
-        .finally (() => {
-            setDeletingId("")
-        })
-    }, [])
+    }
 
     return (
         <Container>
