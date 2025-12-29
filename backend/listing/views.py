@@ -1,7 +1,7 @@
 from uuid import UUID
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
 
 from .serializers import CreateListingSerializer, ListingSerializer
@@ -37,6 +37,8 @@ class ListingCreateView(APIView):
 
 # Listing detail
 class ListingDetailView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
     def get(self, request, listing_id):
         listing = get_object_or_404(Listing, id=listing_id)
         serializer = ListingSerializer(listing)

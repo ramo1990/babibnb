@@ -16,6 +16,8 @@ interface PropertiesClientProps {
 }
 
 // TODO: ajouter une confirmation “Are you sure?” avant suppression
+// create a reusable modal that asks "Are you sure you want to delete this property?" before proceeding with the deletion.
+
 const PropertiesClient = ({listings, currentUser}: PropertiesClientProps) => {
     const router = useRouter()
     const [items, setItems] = useState(listings)
@@ -32,12 +34,16 @@ const PropertiesClient = ({listings, currentUser}: PropertiesClientProps) => {
             setItems(prev => prev.filter(item => item.id !== id))
         })
         .catch ((err) => {
-          toast.error(err?.response?.data?.error || "Failed to delete properties")
+            if (err?.response?.status === 403) {
+                toast.error("You don't have permission to delete this property")
+            } else {
+                toast.error(err?.response?.data?.error || "Failed to delete property")
+            }
         }) 
         .finally (() => {
           setDeletingId("")
         })
-      }, [router])
+      }, [])
 
     return (
         <Container>

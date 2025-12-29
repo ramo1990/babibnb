@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { CurrentUserType, ListingType } from '@/lib/types'
 import PropertiesClient from './PropertiesClient'
 import { getUserListings } from '@/lib/getUserListings'
+import Container from '@/components/Container'
 
 
 const PropertiesPage = () => {
@@ -40,9 +41,17 @@ const PropertiesPage = () => {
     // Skeleton
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div>Loading...</div>
-            </div>
+            <Container>
+                <div className="pt-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="animate-pulse">
+                            <div className="aspect-square bg-neutral-200 rounded-lg" />
+                            <div className="h-4 bg-neutral-200 rounded mt-2" />
+                            <div className="h-4 bg-neutral-200 rounded mt-1 w-2/3" />
+                        </div>
+                    ))}
+                </div>
+            </Container>
         )
     }
 
