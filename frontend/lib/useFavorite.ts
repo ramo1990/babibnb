@@ -24,8 +24,7 @@ const useFavorite = ({listingId}: useFavoriteProps) => {
         return list.includes(listingId)
     }, [currentUser, listingId])
 
-    const toggleFavorite = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-        e.stopPropagation()
+    const toggleFavorite = useCallback(async () => {
 
         if (!currentUser) {
             return loginModal.onOpen()
@@ -41,15 +40,15 @@ const useFavorite = ({listingId}: useFavoriteProps) => {
             }
 
             await request()
+
             // Recharger l'utilisateur et mettre à jour Zustand
             const updatedUser = await getCurrentUser() 
             setUser(updatedUser)
             router.refresh()
 
-            // toast.success('Success')
             toast.success(hasFavorited ? 'Removed from favorites' : 'Added to favorites')
+
         } catch (error) {
-            // toast.error('Something went wrong')
             toast.error('Failed to update favorites')
         }
     }, [currentUser, hasFavorited, listingId, loginModal, router, setUser])

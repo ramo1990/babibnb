@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useCallback, useMemo } from 'react'
 import {format} from 'date-fns'
 import Image from 'next/image'
-import { ListingType, ReservationType } from '@/lib/types';
+import { CurrentUserType, ListingType, ReservationType } from '@/lib/types';
 import HeartButton from '../HeartButton';
 import { Button } from '../ui/button';
 
@@ -16,22 +16,26 @@ interface ListingCardProps {
     onAction?: (id: string) => void;
     disabled?: boolean;
     actionLabel?: string;
-    actionId: string;
+    actionId?: string;
+    currentUser?: CurrentUserType | null;
+    onFavoriteToggle?: (id: string) => void;
 }
 
 // TODO: ajouter un skeleton loader, afficher plusieurs images en carousel
 
-const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation}: ListingCardProps) => {
+const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation, currentUser, onFavoriteToggle}: ListingCardProps) => {
     const router = useRouter()
+    const isFavorite = currentUser?.favoriteIds?.includes(data.id)
     const {getByValue} = getCountries()
 
     const location = getByValue(data.country_code)
 
     const handleCancel = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation()
-        if (disabled) {
+        if (disabled || !actionId) {
             return
         }
+
         onAction?.(actionId)
     }, [onAction, actionId, disabled])
 
@@ -61,7 +65,10 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
                 <div className='aspect-square w-full relative overflow-hidden rounded-xl'>
                     <Image fill alt='Listing' src={data.images[0]} className='object-cover h-full w-full group-hover:scale-110 transition'  />
                     <div className='absolute top-3 right-3'>
-                        <HeartButton listingId={data.id} />
+                        <HeartButton 
+                        listingId={data.id} 
+                        onToggle={() => onFavoriteToggle?.(data.id)}
+                        />
                     </div>
                 </div>
 
@@ -71,7 +78,6 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
 
                 <div className='font-light text-neutral-500'>
                     {reservationDate || data.categories} 
-                    {/* {data.categories} */}
                 </div>
 
                 <div className='flex flex-row items-center gap-1'>
