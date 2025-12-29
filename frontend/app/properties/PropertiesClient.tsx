@@ -4,22 +4,19 @@ import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
 import { api } from '@/lib/axios'
-import { CurrentUserType, ListingType } from '@/lib/types'
-import { useRouter } from 'next/navigation'
+import { ListingType } from '@/lib/types'
 import React, { useCallback, useState } from 'react'
 import toast from 'react-hot-toast'
 
 
 interface PropertiesClientProps {
     listings: ListingType[]
-    currentUser?: CurrentUserType | null
 }
 
-// TODO: ajouter une confirmation “Are you sure?” avant suppression
+// TODO: ajouter une confirmation “Are you sure?” avant suppression, Displaying a loader during deletion
 // create a reusable modal that asks "Are you sure you want to delete this property?" before proceeding with the deletion.
 
-const PropertiesClient = ({listings, currentUser}: PropertiesClientProps) => {
-    const router = useRouter()
+const PropertiesClient = ({listings}: PropertiesClientProps) => {
     const [items, setItems] = useState(listings)
     const [deletingId, setDeletingId] = useState('')
 

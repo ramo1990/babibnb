@@ -74,7 +74,7 @@ const PropertiesPage = () => {
     }
 
     return (
-        <PropertiesClient  listings={listings} currentUser={currentUser} />
+        <PropertiesClient  listings={listings} />
     )
 }
 
