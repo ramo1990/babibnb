@@ -57,12 +57,12 @@ class ListingListView(APIView):
         # Filtre par nombre de salles de bain 
         if bathroom_count: 
             try:
-               bathroom_count = int(bathroom_count)
-               if bathroom_count < 1:
-                   return Response({"error": "bathroomCount must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
-               listings = listings.filter(bathroom_count__gte=bathroom_count)
+                bathroom_count = int(bathroom_count)
+                if bathroom_count < 1:
+                    return Response({"error": "bathroomCount must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
+                listings = listings.filter(bathroom_count__gte=bathroom_count)
             except ValueError:
-               return Response({"error": "Invalid bathroomCount parameter"}, status=status.HTTP_400_BAD_REQUEST) 
+                return Response({"error": "Invalid bathroomCount parameter"}, status=status.HTTP_400_BAD_REQUEST) 
             
         # Filtre par disponibilité (éviter les dates déjà réservées) 
         if start_date and end_date: 

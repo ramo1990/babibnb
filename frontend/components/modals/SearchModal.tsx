@@ -8,7 +8,7 @@ import { Range } from 'react-date-range'
 import dynamic from 'next/dynamic'
 import CountrySelect, { CountrySelectValue } from '../inputs/CountrySelect'
 import qs from 'query-string'
-import { formatISO } from 'date-fns'
+import { addDays, formatISO } from 'date-fns'
 import Heading from '../Heading'
 import Calendar from '../inputs/Calendar'
 import Counter from '../inputs/Counter'
@@ -43,7 +43,7 @@ const SearchModal = () => {
     const [bathroomCount, setBathroomCount] = useState(1)
     const [dateRange, setDateRange] = useState<Range>({
         startDate: new Date(),
-        endDate: new Date(),
+        endDate: addDays(new Date(), 1),
         key: 'selection'
     })
 
@@ -64,12 +64,8 @@ const SearchModal = () => {
             return onNext()
         }
 
-        let currentQuery = {}
-
-        if (params) {
-            currentQuery = qs.parse(params.toString())
-        }
-
+        const currentQuery = params ? qs.parse(params.toString()) : {}
+        
         const updateQuery: SearchQuery = {
             ...currentQuery,
             locationValue: location?.value,
@@ -111,6 +107,19 @@ const SearchModal = () => {
         return 'Back'
     }, [step])
 
+    const resetModal = useCallback(() => {
+        setLocation(undefined)
+        setStep(STEPS.LOCATION)
+        setGuestCount(1)
+        setRoomCount(1)
+        setBathroomCount(1)
+        setDateRange({
+            startDate: new Date(),
+            endDate: new Date(),
+            key: 'selection'
+        })
+    }, [])
+
     // Location
     let bodyContent = (
         <div className='flex flex-col gap-8'>
@@ -148,7 +157,10 @@ const SearchModal = () => {
     return (
         <Modal 
             isOpen={searchModal.isOpen} 
-            onClose={searchModal.onClose} 
+            onClose={() => {
+                searchModal.onClose() 
+                resetModal()
+            }}
             onSubmit={onSubmit} 
             title='Filters' 
             actionLabel={actionLabel} 
