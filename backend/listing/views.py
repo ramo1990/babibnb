@@ -26,11 +26,11 @@ class ListingListView(APIView):
         bathroom_count = request.query_params.get("bathroomCount") 
         start_date = request.query_params.get("startDate") 
         end_date = request.query_params.get("endDate")
-        # category = request.query_params.get("category")
+        category = request.query_params.get("category")
 
         # Filtre par catégorie(JSONField)
-        # if category: 
-        #     listings = listings.filter(categories__contains=[category])
+        if category: 
+            listings = listings.filter(categories__contains=[category])
         # Filtre par pays 
         if location: 
             listings = listings.filter(country_code=location) 
