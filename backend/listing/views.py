@@ -8,14 +8,52 @@ from .serializers import CreateListingSerializer, ListingSerializer
 from accounts.serializers import CurrentUserSerializer  # pour renvoyer l'user à jour
 from .models import Listing
 from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_datetime
 
+# TODO: ajouter un filtre par prix, un filtre par type de logement, ou même un filtre par distance.
 
-# Vue publique GET
+# Vue publique qui retourne les listings filtrés
 class ListingListView(APIView):
     permission_classes = []  # Public
 
     def get(self, request):
         listings = Listing.objects.all().order_by("-created_at")
+
+        # Récupération des filtres
+        location = request.query_params.get("locationValue") 
+        guest_count = request.query_params.get("guestCount") 
+        room_count = request.query_params.get("roomCount") 
+        bathroom_count = request.query_params.get("bathroomCount") 
+        start_date = request.query_params.get("startDate") 
+        end_date = request.query_params.get("endDate")
+        # category = request.query_params.get("category")
+
+        # Filtre par catégorie(JSONField)
+        # if category: 
+        #     listings = listings.filter(categories__contains=[category])
+        # Filtre par pays 
+        if location: 
+            listings = listings.filter(country_code=location) 
+        # Filtre par nombre de personnes 
+        if guest_count: 
+            listings = listings.filter(guest_count__gte=guest_count) 
+        # Filtre par nombre de chambres 
+        if room_count: 
+            listings = listings.filter(room_count__gte=room_count) 
+        # Filtre par nombre de salles de bain 
+        if bathroom_count: 
+            listings = listings.filter(bathroom_count__gte=bathroom_count) 
+        # Filtre par disponibilité (éviter les dates déjà réservées) 
+        if start_date and end_date: 
+            start = parse_datetime(start_date) 
+            end = parse_datetime(end_date)
+
+            if start and end:
+                listings = listings.exclude( 
+                    reservations__start_date__lt=end, 
+                    reservations__end_date__gt=start 
+                )
+
         serializer = ListingSerializer(listings, many=True)
         return Response(serializer.data)
 
