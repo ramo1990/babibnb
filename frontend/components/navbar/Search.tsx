@@ -8,7 +8,6 @@ import { BiSearch } from 'react-icons/bi'
 const Search = () => {
   const searchModal = useSearchModal()
   const params = useSearchParams()
-  const { getByValue } = getCountries()
 
   const locationValue = params?.get('locationValue')
   const startDate = params?.get('startDate')
@@ -17,10 +16,11 @@ const Search = () => {
 
   const locationLabel = useMemo(() => {
     if (locationValue) {
+      const { getByValue } = getCountries()
       return getByValue(locationValue as string)?.label
     }
     return 'Anywhere'
-  }, [getByValue, locationValue])
+  }, [locationValue])
 
   const durationLabel = useMemo(() => {
     if (startDate && endDate) {
@@ -31,14 +31,14 @@ const Search = () => {
       if (diff === 0) {
         diff = 1
       }
-      return `${diff} Days`
+      return `${diff} ${diff === 1 ? 'Day' : 'Days'}`
     }
     return 'Any Week'
   }, [startDate, endDate])
 
   const guestLabel = useMemo(() => {
     if (guestCount) {
-      return `${guestCount} Guests`
+      return `${guestCount} ${parseInt(guestCount) === 1 ? 'Guest' : 'Guests'}`
     }
     return 'Add Guests'
   }, [guestCount])

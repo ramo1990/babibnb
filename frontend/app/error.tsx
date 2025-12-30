@@ -14,7 +14,7 @@ const ErrorState = ({error}: ErrorStateProps) => {
     }, [error])
 
     return (
-        <EmptyState title='Oh mince' subtitle='Something went wrong' />
+        <EmptyState title='Oh mince' subtitle="Quelque chose s'est mal passé" />
     )
 }
 

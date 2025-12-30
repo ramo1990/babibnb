@@ -14,11 +14,23 @@ import Calendar from '../inputs/Calendar'
 import Counter from '../inputs/Counter'
 
 
+interface SearchQuery {
+    locationValue?: string;
+    guestCount?: number;
+    roomCount?: number;
+    bathroomCount?: number;
+    startDate?: string;
+    endDate?: string;
+    [key: string]: string | number | undefined;
+}
+
 enum STEPS {
     LOCATION = 0,
     DATE = 1,
     INFO = 2
 }
+
+// TODO: reinitialise le modal lorsqu'il est fermé
 const SearchModal = () => {
     const router = useRouter()
     const params = useSearchParams()
@@ -35,9 +47,9 @@ const SearchModal = () => {
         key: 'selection'
     })
 
-    const Map = useMemo(() => dynamic(() => import('../Map'), {
+    const LocationMap = useMemo(() => dynamic(() => import('../Map'), {
         ssr: false,
-    }), [location])
+    }), [])
 
     const onBack = useCallback(() => {
         setStep((value) => value - 1)
@@ -58,7 +70,7 @@ const SearchModal = () => {
             currentQuery = qs.parse(params.toString())
         }
 
-        const updateQuery: any = {
+        const updateQuery: SearchQuery = {
             ...currentQuery,
             locationValue: location?.value,
             guestCount,
@@ -91,7 +103,7 @@ const SearchModal = () => {
         return 'Next'
     }, [step])
 
-    const SecondaryActionLabel = useMemo(() => {
+    const secondaryActionLabel = useMemo(() => {
         if (step === STEPS.LOCATION) {
             return undefined
         }
@@ -106,7 +118,7 @@ const SearchModal = () => {
             <CountrySelect value={location} onChange={(value) => setLocation(value as CountrySelectValue)} />
             <hr />
 
-            <Map center={location?.latlng} />
+            <LocationMap center={location?.latlng} />
         </div>
     )
     
@@ -140,7 +152,7 @@ const SearchModal = () => {
             onSubmit={onSubmit} 
             title='Filters' 
             actionLabel={actionLabel} 
-            secondaryActionLabel={SecondaryActionLabel}
+            secondaryActionLabel={secondaryActionLabel}
             secondaryAction={step === STEPS.LOCATION ? undefined : onBack}
             body={bodyContent}
         />

@@ -36,23 +36,54 @@ class ListingListView(APIView):
             listings = listings.filter(country_code=location) 
         # Filtre par nombre de personnes 
         if guest_count: 
-            listings = listings.filter(guest_count__gte=guest_count) 
+            try:
+                guest_count = int(guest_count)
+                if guest_count < 1:
+                    return Response({"error": "guestCount must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
+                listings = listings.filter(guest_count__gte=guest_count)
+            except ValueError:
+                return Response({"error": "Invalid guestCount parameter"}, status=status.HTTP_400_BAD_REQUEST) 
+            
         # Filtre par nombre de chambres 
         if room_count: 
-            listings = listings.filter(room_count__gte=room_count) 
+            try:
+                room_count = int(room_count)
+                if room_count < 1:
+                    return Response({"error": "roomCount must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
+                listings = listings.filter(room_count__gte=room_count)
+            except ValueError:
+                return Response({"error": "Invalid roomCount parameter"}, status=status.HTTP_400_BAD_REQUEST) 
+            
         # Filtre par nombre de salles de bain 
         if bathroom_count: 
-            listings = listings.filter(bathroom_count__gte=bathroom_count) 
+            try:
+               bathroom_count = int(bathroom_count)
+               if bathroom_count < 1:
+                   return Response({"error": "bathroomCount must be at least 1"}, status=status.HTTP_400_BAD_REQUEST)
+               listings = listings.filter(bathroom_count__gte=bathroom_count)
+            except ValueError:
+               return Response({"error": "Invalid bathroomCount parameter"}, status=status.HTTP_400_BAD_REQUEST) 
+            
         # Filtre par disponibilité (éviter les dates déjà réservées) 
         if start_date and end_date: 
             start = parse_datetime(start_date) 
             end = parse_datetime(end_date)
 
-            if start and end:
-                listings = listings.exclude( 
-                    reservations__start_date__lt=end, 
-                    reservations__end_date__gt=start 
+            if not start and not end:
+                return Response(
+                    {"error": "Invalid date format. Expected ISO 8601 format."},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
+            if start >= end:
+                return Response(
+                    {"error": "Start date must be before end date."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            listings = listings.exclude( 
+                reservations__start_date__lt=end, 
+                reservations__end_date__gt=start 
+            )
 
         serializer = ListingSerializer(listings, many=True)
         return Response(serializer.data)
