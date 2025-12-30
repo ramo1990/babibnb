@@ -15,6 +15,7 @@ interface PropertiesClientProps {
 
 // TODO: ajouter une confirmation “Are you sure?” avant suppression, Displaying a loader during deletion
 // create a reusable modal that asks "Are you sure you want to delete this property?" before proceeding with the deletion.
+// Rafraichir la page parent apres suppressions
 
 const PropertiesClient = ({listings}: PropertiesClientProps) => {
     const [items, setItems] = useState(listings)

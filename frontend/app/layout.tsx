@@ -6,6 +6,7 @@ import RegisterModal from "@/components/modals/RegisterModal";
 import LoginModal from "@/components/modals/LoginModal";
 import Providers from "@/components/providers/Providers";
 import RentModal from "@/components/modals/RentModal";
+import SearchModal from "@/components/modals/SearchModal";
 
 
 const font = Nunito({
@@ -26,13 +27,14 @@ export default function RootLayout({
     <html lang="fr">
       <body className={font.className}>
           <Providers>
+            <SearchModal />
             <RentModal />
             <RegisterModal />
             <LoginModal />
             <Navbar />
-            <div className="pt-20 pb-20">
-              {children}
-            </div>
+              <div className="pt-20 pb-20">
+                {children}
+              </div>
           </Providers>
       </body>
     </html>

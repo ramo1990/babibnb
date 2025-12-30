@@ -1,20 +1,61 @@
-import React from 'react'
+import getCountries from '@/lib/getCountries'
+import useSearchModal from '@/lib/useSearchModal'
+import { differenceInDays } from 'date-fns'
+import { useSearchParams } from 'next/navigation'
+import React, { useMemo } from 'react'
 import { BiSearch } from 'react-icons/bi'
 
 const Search = () => {
+  const searchModal = useSearchModal()
+  const params = useSearchParams()
+
+  const locationValue = params?.get('locationValue')
+  const startDate = params?.get('startDate')
+  const endDate = params?.get('endDate')
+  const guestCount = params?.get('guestCount')
+
+  const locationLabel = useMemo(() => {
+    if (locationValue) {
+      const { getByValue } = getCountries()
+      return getByValue(locationValue as string)?.label
+    }
+    return 'Anywhere'
+  }, [locationValue])
+
+  const durationLabel = useMemo(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate as string)
+      const end = new Date(endDate as string)
+      let diff = differenceInDays(end, start)
+
+      if (diff === 0) {
+        diff = 1
+      }
+      return `${diff} ${diff === 1 ? 'Day' : 'Days'}`
+    }
+    return 'Any Week'
+  }, [startDate, endDate])
+
+  const guestLabel = useMemo(() => {
+    if (guestCount) {
+      return `${guestCount} ${parseInt(guestCount) === 1 ? 'Guest' : 'Guests'}`
+    }
+    return 'Add Guests'
+  }, [guestCount])
+
   return (
-    <div className='border border-gray-300 w-full md:w-auto py-2 rounded-full shadow-sm transition cursor-pointer'>
+    <div onClick={searchModal.onOpen} className='border border-gray-300 w-full md:w-auto py-2 rounded-full shadow-sm transition cursor-pointer'>
       <div className='flex flex-row items-center justify-between'>
         <div className='text-sm font-semibold px-6'>
-          Anywhere
+          {locationLabel}
         </div>
         
         <div className='hidden sm:block text-sm font-semibold px-6 border-x flex-1 text-center'>
-          Any Week
+          {durationLabel}
         </div>
 
         <div className='text-sm pl-6 pr-2 text-gray-600 flex flex-row items-center gap-3'>
-          <div className='hidden sm:block'>Add Guests</div>
+          <div className='hidden sm:block'>{guestLabel}</div>
           <div className='p-2 bg-rose-500 rounded-full text-white'> <BiSearch size={18}/> </div>
         </div>
 
