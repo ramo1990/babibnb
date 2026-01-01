@@ -59,3 +59,23 @@ export interface ReservationType {
   totalPrice: number
   created_at: string
 }
+
+export interface ConversationType { 
+  id: string 
+  listing: ListingType 
+  host: CurrentUserType 
+  guest: CurrentUserType 
+  lastMessage?: MessageType 
+  isHost: boolean 
+  created_at: string 
+  updated_at: string
+} 
+
+export interface MessageType { 
+  id: string 
+  sender: CurrentUserType 
+  content: string 
+  created_at: string 
+  isMine?: boolean 
+  isRead: boolean
+}

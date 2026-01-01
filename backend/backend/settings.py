@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'accounts',
     'listing',
     'reservations',
+    'chat',
 ]
 
 CORS_ALLOWED_ORIGINS = [
