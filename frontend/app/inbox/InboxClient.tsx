@@ -1,0 +1,78 @@
+"use client"
+
+import Container from '@/components/Container'
+import EmptyState from '@/components/EmptyState'
+import Heading from '@/components/Heading'
+import ConversationItem from '@/components/inbox/Conversations'
+import { api } from '@/lib/axios'
+import { ConversationType } from '@/lib/types'
+import React, { useEffect, useState } from 'react'
+
+
+const InboxClient = () => {
+    const [conversations, setConversations] = useState<ConversationType[]>([]) 
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    
+    useEffect(() => { 
+        const controller = new AbortController()
+
+        const fetchConversations = async () => { 
+            try { 
+                const res = await api.get("/conversations/", {
+                    signal: controller.signal
+                }) 
+                setConversations(res.data) 
+            } catch (error: any) { 
+                console.error("Failed to load conversations", error) 
+                const message = error.response?.data?.message || error.message || "Failed to load conversations. Please try again."
+                setError(message)
+            } finally { 
+                setLoading(false) 
+            } 
+        } 
+        fetchConversations() 
+
+        return () => controller.abort()
+    }, [])
+
+    // Loading state 
+    if (loading) { 
+        return <EmptyState title="Loading..." subtitle="Please wait" /> 
+    }
+
+    // Error state
+    if (error) {
+        return <EmptyState title="Error" subtitle={error} />
+    }
+
+    // Empty state
+    if (conversations.length === 0) {
+        return (
+            <EmptyState 
+            title="No conversations yet"
+            subtitle="Messages will appear here"
+        />
+        )
+    }
+    
+    return (
+        <Container>
+            <Heading 
+                title="Inbox" 
+                subtitle="Conversations with hosts and guests" 
+            />
+
+            <div className="mt-10 flex flex-col gap-4">
+                {conversations.map((conv) => (
+                    <ConversationItem 
+                        key={conv.id}
+                        conversation={conv}
+                    />
+                ))}
+            </div>
+        </Container>
+    )
+}
+
+export default InboxClient
