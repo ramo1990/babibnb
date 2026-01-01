@@ -23,7 +23,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_listing(self, obj): 
         from listing.serializers import ListingSerializer 
-        return ListingSerializer(obj.listing).data
+        return ListingSerializer(obj.listing, context=self.context).data
 
     def get_isHost(self, obj): 
         request = self.context.get("request") 

@@ -15,18 +15,25 @@ const InboxClient = () => {
     const [error, setError] = useState<string | null>(null)
     
     useEffect(() => { 
+        const controller = new AbortController()
+
         const fetchConversations = async () => { 
             try { 
-                const res = await api.get("/conversations/") 
+                const res = await api.get("/conversations/", {
+                    signal: controller.signal
+                }) 
                 setConversations(res.data) 
-            } catch (error) { 
+            } catch (error: any) { 
                 console.error("Failed to load conversations", error) 
-                setError("Failed to load conversations. Please try again.")
+                const message = error.response?.data?.message || error.message || "Failed to load conversations. Please try again."
+                setError(message)
             } finally { 
                 setLoading(false) 
             } 
         } 
         fetchConversations() 
+
+        return () => controller.abort()
     }, [])
 
     // Loading state 
@@ -38,7 +45,7 @@ const InboxClient = () => {
     if (error) {
         return <EmptyState title="Error" subtitle={error} />
     }
-    
+
     // Empty state
     if (conversations.length === 0) {
         return (

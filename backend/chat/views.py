@@ -1,5 +1,4 @@
 from django.utils import timezone
-from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
@@ -52,15 +51,14 @@ class MessageCreateView(APIView):
                 status=403
             )
 
-        conversation.updated_at = timezone.now() 
-        conversation.save()
-
         message = Message.objects.create(
             conversation=conversation,
             sender=request.user,
             content=content
         )
 
+        # Trigger updated_at via save (auto_now=True)
+        conversation.save(update_fields=[])
         return Response(MessageSerializer(message, context={"request": request}).data)
 
 # récupérer tous les messages d’une conversation
