@@ -13,12 +13,12 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = "__all__"
+        fields = ["id", "host", "guest", "listing", "created_at", "updated_at", "lastMessage", "isHost"]
 
     def get_lastMessage(self, obj): 
         message = obj.messages.order_by("-created_at").first() 
         if message: 
-            return MessageSerializer(message).data 
+            return MessageSerializer(message, context=self.context).data 
         return None
 
     def get_listing(self, obj): 
@@ -35,7 +35,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = "__all__"
+        fields = ["id", "conversation", "sender", "content", "created_at", "is_read", "isMine"]
 
     def get_isMine(self, obj): 
         request = self.context.get("request") 

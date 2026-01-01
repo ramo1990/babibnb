@@ -17,34 +17,50 @@ const ConversationPage = ({ conversationId }: Props) => {
 
     // Fetch conversation + messages 
     useEffect(() => { 
+        const abortController = new AbortController()
         const fetchData = async () => { 
             try { 
                 // Conversation 
-                const convRes = await api.get(`/conversations/${conversationId}/info/`) 
+                const convRes = await api.get(`/conversations/${conversationId}/info/`, {
+                    signal: abortController.signal
+                }) 
                 setConversation(convRes.data) 
                 
                 // Messages 
-                const msgRes = await api.get(`/conversations/${conversationId}/`) 
+                const msgRes = await api.get(`/conversations/${conversationId}/`, {
+                    signal: abortController.signal
+                }) 
                 setMessages(msgRes.data) 
             } catch (error) { 
-                console.error("Failed to load conversation", error) 
+                if (error instanceof Error && error.name !== "AbortError") { 
+                    console.error("Failed to load conversation", error.message) 
+                } 
             } finally { 
-                setLoading(false) 
+                if (!abortController.signal.aborted) {
+                    setLoading(false)
+                } 
             } 
         } 
         fetchData() 
+
+        return () => abortController.abort()
     }, [conversationId])
 
     const sendMessage = async () => {
         if (!text.trim()) return
 
-        const res = await api.post("/messages/create/", {
-            conversation_id: conversationId,
-            content: text
-        })
-
-        setMessages((prev) => [...prev, { ...res.data, is_mine: true }])
-        setText("")
+        try {
+            const res = await api.post("/messages/create/", {
+                conversation_id: conversationId,
+                content: text
+            })
+    
+            setMessages((prev) => [...prev, { ...res.data, isMine: true }])
+            setText("")
+        } catch (error) {
+            console.error("Failed to send message", error)
+            // Consider showing a user-facing error message
+        }
     }
 
     if (loading) { 

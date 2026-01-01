@@ -7,6 +7,7 @@ from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from listing.models import Listing
 from rest_framework.response import Response
+from django.db.models import Q
 
 
 # creer une conversation
@@ -20,7 +21,13 @@ class ConversationCreateView(APIView):
         listing = get_object_or_404(Listing, id=listing_id)
         host = listing.owner
 
-        conversation, created = Conversation.objects.get_or_create(
+        if host == guest:
+            return Response(
+                {"error": "You cannot create a conversation with yourself"},
+                status=400
+            )
+        
+        conversation, _created = Conversation.objects.get_or_create(
             listing=listing,
             host=host,
             guest=guest
@@ -37,6 +44,14 @@ class MessageCreateView(APIView):
         content = request.data.get("content")
 
         conversation = get_object_or_404(Conversation, id=conversation_id)
+
+        # Verify user is a participant
+        if request.user not in [conversation.host, conversation.guest]:
+            return Response(
+                {"error": "You are not a participant in this conversation"},
+                status=403
+            )
+
         conversation.updated_at = timezone.now() 
         conversation.save()
 
@@ -54,6 +69,14 @@ class ConversationMessagesView(APIView):
 
     def get(self, request, conversation_id):
         conversation = get_object_or_404(Conversation, id=conversation_id)
+
+        # Verify user is a participant
+        if request.user not in [conversation.host, conversation.guest]:
+            return Response(
+                {"error": "You are not a participant in this conversation"},
+                status=403
+            )
+        
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
 
@@ -66,9 +89,7 @@ class ConversationListView(APIView):
 
         # L'utilisateur peut être host OU guest
         conversations = Conversation.objects.filter(
-            host=user
-        ) | Conversation.objects.filter(
-            guest=user
+            Q(host=user) | Q(guest=user)
         )
 
         conversations = conversations.order_by("-updated_at")
@@ -82,4 +103,11 @@ class ConversationInfoView(APIView):
 
     def get(self, request, conversation_id):
         conversation = get_object_or_404(Conversation, id=conversation_id)
+        # Verify user is a participant
+        if request.user not in [conversation.host, conversation.guest]:
+            return Response(
+                {"error": "You are not a participant in this conversation"},
+                status=403
+            )
+        
         return Response(ConversationSerializer(conversation, context={"request": request}).data)

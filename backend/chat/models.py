@@ -16,7 +16,12 @@ class Conversation(models.Model):
 
     class Meta:
         unique_together = ("listing", "host", "guest")
-
+        indexes = [
+            models.Index(fields=['host', '-updated_at']),
+            models.Index(fields=['guest', '-updated_at']),
+            models.Index(fields=['-updated_at']),
+        ]
+        
     def __str__(self):
         return f"Conversation {self.id} - {self.listing.title}"
 

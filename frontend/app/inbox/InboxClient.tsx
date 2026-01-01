@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react'
 const InboxClient = () => {
     const [conversations, setConversations] = useState<ConversationType[]>([]) 
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     
     useEffect(() => { 
         const fetchConversations = async () => { 
@@ -20,6 +21,7 @@ const InboxClient = () => {
                 setConversations(res.data) 
             } catch (error) { 
                 console.error("Failed to load conversations", error) 
+                setError("Failed to load conversations. Please try again.")
             } finally { 
                 setLoading(false) 
             } 
@@ -32,6 +34,11 @@ const InboxClient = () => {
         return <EmptyState title="Loading..." subtitle="Please wait" /> 
     }
 
+    // Error state
+    if (error) {
+        return <EmptyState title="Error" subtitle={error} />
+    }
+    
     // Empty state
     if (conversations.length === 0) {
         return (
