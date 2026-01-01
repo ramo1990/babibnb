@@ -15,6 +15,12 @@ class ConversationCreateView(APIView):
 
     def post(self, request):
         listing_id = request.data.get("listing_id")
+        if not listing_id:
+            return Response(
+                {"error": "listing_id is required"},
+                status=400
+            )
+        
         guest = request.user
 
         listing = get_object_or_404(Listing, id=listing_id)
@@ -42,6 +48,18 @@ class MessageCreateView(APIView):
         conversation_id = request.data.get("conversation_id")
         content = request.data.get("content")
 
+        if not conversation_id:
+            return Response(
+                {"error": "conversation_id is required"},
+                status=400
+            )
+    
+        if not content or not content.strip():
+            return Response(
+                {"error": "content is required and cannot be empty"},
+                status=400
+            )
+
         conversation = get_object_or_404(Conversation, id=conversation_id)
 
         # Verify user is a participant
@@ -54,7 +72,7 @@ class MessageCreateView(APIView):
         message = Message.objects.create(
             conversation=conversation,
             sender=request.user,
-            content=content
+            content=content.strip()
         )
 
         # Trigger updated_at via save (auto_now=True)
