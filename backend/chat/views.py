@@ -93,6 +93,11 @@ class ConversationMessagesView(APIView):
                 status=403
             )
         
+        # Marquer les messages de l'autre utilisateur comme lus 
+        conversation.messages.filter( 
+            is_read=False 
+        ).exclude(sender=request.user).update(is_read=True)
+        
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
 

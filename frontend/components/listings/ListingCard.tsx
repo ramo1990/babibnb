@@ -19,11 +19,15 @@ interface ListingCardProps {
     actionId?: string;
     currentUser?: CurrentUserType | null;
     onFavoriteToggle?: (id: string) => void;
+
+    secondaryActionId?: string
+    secondaryActionLabel?: string
+    onSecondaryAction?: (id: string) => void
 }
 
 // TODO: ajouter un skeleton loader, afficher plusieurs images en carousel
 
-const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation, currentUser, onFavoriteToggle}: ListingCardProps) => {
+const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservation, currentUser, onFavoriteToggle, secondaryActionId, secondaryActionLabel, onSecondaryAction}: ListingCardProps) => {
     const router = useRouter()
     const {getByValue} = getCountries()
 
@@ -34,10 +38,15 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
         if (disabled || !actionId) {
             return
         }
-
         onAction?.(actionId)
     }, [onAction, actionId, disabled])
 
+    const handleSecondaryAction = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation()
+        if (disabled || !secondaryActionId) return
+        onSecondaryAction?.(secondaryActionId)
+    }, [onSecondaryAction, secondaryActionId, disabled])
+    
     const price = useMemo(() => {
         if (reservation) {
             return reservation.totalPrice;
@@ -51,7 +60,6 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
         }
         const start = new Date(reservation.startDate)
         const end = new Date(reservation.endDate)
-
         return `${format(start, 'PP')} - ${format(end, 'PP')}`
     }, [reservation])
 
@@ -80,18 +88,25 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
                 </div>
 
                 <div className='flex flex-row items-center gap-1'>
-                    <div className='font-semibold'>
-                        {price} $
-                    </div>
-                    <div>
-                        {!reservation && (
-                            <div className='font-light'>per night</div>
-                        )}
-                    </div>
+                    <div className='font-semibold'>{price} $</div>
+                    {!reservation && (<div className='font-light'>per night</div>)}
                 </div>
 
+                {/* Action principale */}
                 {onAction && actionLabel && (
                     <Button disabled={disabled} size='sm' label={actionLabel} onClick={handleCancel} />
+                )}
+
+                {/* Action secondaire : Contact host */}
+                {onSecondaryAction && secondaryActionLabel && (
+                    <Button 
+                        disabled={disabled}
+                        size="sm"
+                        label={secondaryActionLabel}
+                        onClick={handleSecondaryAction}
+                        variant="outline"
+                        className="mt-1"
+                    />
                 )}
             </div>
         </div>

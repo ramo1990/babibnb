@@ -3,6 +3,7 @@
 import Container from '@/components/Container'
 import Heading from '@/components/Heading'
 import ListingCard from '@/components/listings/ListingCard'
+import { api } from '@/lib/axios'
 import { CurrentUserType, ReservationType } from '@/lib/types'
 import { useReservationCancellation } from '@/lib/useReservationCancellation'
 import { useRouter } from 'next/navigation'
@@ -27,6 +28,19 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
         })
     }
 
+    const onContactHost = async (listingId: string) => {
+        try {
+            const res = await api.post("/conversations/create/", {
+                listing_id: listingId
+            })
+    
+            // Redirection vers la conversation
+            router.push(`/inbox/${res.data.id}`)
+        } catch (error) {
+            console.error("Failed to contact host", error)
+        }
+    }
+    
     return (
         <Container>
             <Heading title='Trips' subtitle="Where you've been and where you're going" />
@@ -41,6 +55,10 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
                         onAction={onCancel}
                         disabled={deletingId === reservation.id}
                         actionLabel='Cancel reservation'
+
+                        secondaryActionId={reservation.listing.id}
+                        onSecondaryAction={onContactHost}
+                        secondaryActionLabel='Contact host'
                     />
                 ))}
             </div>

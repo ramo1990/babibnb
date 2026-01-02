@@ -32,10 +32,11 @@ class ConversationSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     isMine = serializers.SerializerMethodField()
+    isRead = serializers.BooleanField(source="is_read")
 
     class Meta:
         model = Message
-        fields = ["id", "conversation", "sender", "content", "created_at", "is_read", "isMine"]
+        fields = ["id", "conversation", "sender", "content", "created_at", "isRead", "isMine"]
 
     def get_isMine(self, obj): 
         request = self.context.get("request") 

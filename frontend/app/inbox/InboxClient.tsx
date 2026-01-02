@@ -6,6 +6,7 @@ import Heading from '@/components/Heading'
 import ConversationItem from '@/components/inbox/Conversations'
 import { api } from '@/lib/axios'
 import { ConversationType } from '@/lib/types'
+import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 
 
@@ -24,6 +25,7 @@ const InboxClient = () => {
                 }) 
                 setConversations(res.data) 
             } catch (error: any) { 
+                if (axios.isCancel(error)) return
                 console.error("Failed to load conversations", error) 
                 const message = error.response?.data?.message || error.message || "Failed to load conversations. Please try again."
                 setError(message)
@@ -36,9 +38,33 @@ const InboxClient = () => {
         return () => controller.abort()
     }, [])
 
+    // Skeleton   
+    const Skeleton = () => (
+        <div className="p-4 border rounded-lg animate-pulse flex items-center gap-3"> 
+            {/* Avatar */} 
+            <div className="w-10 h-10 bg-neutral-300 rounded-full" /> 
+            <div className="flex-1 space-y-2"> 
+                <div className="h-3 w-32 bg-neutral-300 rounded" /> 
+                <div className="h-3 w-48 bg-neutral-200 rounded" /> 
+                <div className="h-3 w-40 bg-neutral-200 rounded" /> 
+            </div> 
+            
+            <div className="h-3 w-10 bg-neutral-200 rounded" /> 
+        </div> 
+    )
+
     // Loading state 
     if (loading) { 
-        return <EmptyState title="Loading..." subtitle="Please wait" /> 
+        return (
+            <Container>
+                <Heading title='Inbox' subtitle='Conversations with hosts and guests' />
+                <div className='mt-10 flex flex-col gap-4'>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <Skeleton key={i} />
+                    ))}
+                </div>
+            </Container>
+        )
     }
 
     // Error state
