@@ -20,6 +20,12 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
+    const MESSAGE_GROUP_THRESHOLD_MS = 2 * 60 * 1000 // 2 minutes
+
+    const lastMyMessage = useMemo(
+        () => messages.filter(m => m.isMine).slice(-1)[0],
+        [messages]
+    )
 
     const formatDateLabel = (dateString: string) => {
         const date = new Date(dateString)
@@ -105,11 +111,6 @@ const ConversationPage = ({ conversationId }: Props) => {
         return <div className="p-4">Conversation not found</div> 
     }
 
-    const lastMyMessage = useMemo(
-        () => messages.filter(m => m.isMine).slice(-1)[0],
-        [messages]
-    )
-
     return (
         <Container >
             <div className="flex flex-col h-full">
@@ -125,7 +126,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                         const previousMsg = messages[index - 1]
                         const isSameAuthor = previousMsg && previousMsg.isMine === msg.isMine
                         const isCloseInTime = previousMsg &&
-                            Math.abs(new Date(msg.created_at).getTime() - new Date(previousMsg.created_at).getTime()) < 2 * 60 * 1000 // 2 minutes
+                            Math.abs(new Date(msg.created_at).getTime() - new Date(previousMsg.created_at).getTime()) < MESSAGE_GROUP_THRESHOLD_MS
 
                         const isGrouped = isSameAuthor && isCloseInTime && !showDateSeparator
 
@@ -150,9 +151,9 @@ const ConversationPage = ({ conversationId }: Props) => {
 
                                 {/* Bulle */}
                                 <div className="flex flex-col max-w-[70%]">
-                                    <div className={`px-4 py-2 text-sm rounded-lg shadow-sm ${
-                                            msg.isMine ? "bg-blue-400 text-white ml-auto rounded-br-none self-end" 
-                                                : "bg-gray-100 text-gray-800 rounded-bl-none self-start"
+                                    <div className={`px-4 py-2 text-sm shadow-sm ${
+                                            msg.isMine ? "bg-blue-400 text-white ml-auto self-end" 
+                                                : "bg-gray-100 text-gray-800 self-start"
                                         } ${isGrouped ? "rounded-2xl" : msg.isMine ? "rounded-2xl rounded-br-none" : "rounded-2xl rounded-bl-none"
                                     }`}
                                     >
