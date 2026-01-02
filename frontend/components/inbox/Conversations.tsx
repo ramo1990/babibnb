@@ -51,8 +51,8 @@ const ConversationItem = ({ conversation }: Props) => {
                 </div>
 
                 {/* Aperçu du dernier message */}
-                <div className="text-xs text-neutral-400 mt-1 truncate max-w-50">
-                    {lastMessage?.content ?? "Auncun message"}
+                <div className="text-xs text-neutral-400 mt-1 truncate max-w-xs">
+                    {lastMessage?.content ?? "Aucun message"}
                 </div>
             </div>
 

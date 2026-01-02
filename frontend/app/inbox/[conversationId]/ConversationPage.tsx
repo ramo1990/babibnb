@@ -57,11 +57,11 @@ const ConversationPage = ({ conversationId }: Props) => {
                     signal: abortController.signal
                 }) 
                 setMessages(msgRes.data) 
-            } catch (error: any) { 
-                if (error.code === "ERR_CANCELED") { 
+            } catch (error: unknown) { 
+                if (error instanceof Error && 'code' in error && error.code === "ERR_CANCELED") {  
                     return
                 } 
-                console.error("Failed to load conversation", error.message) 
+                console.error("Failed to load conversation", error) 
             } finally { 
                 if (!abortController.signal.aborted) {
                     setLoading(false)
@@ -121,7 +121,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                         const isCloseInTime = previousMsg &&
                             Math.abs(new Date(msg.created_at).getTime() - new Date(previousMsg.created_at).getTime()) < 2 * 60 * 1000 // 2 minutes
 
-                        const isGrouped = isSameAuthor && isCloseInTime
+                        const isGrouped = isSameAuthor && isCloseInTime && !showDateSeparator
 
                         return(
                             <div key={msg.id} className="flex flex-col">
@@ -158,7 +158,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                                     <span className={`text-[10px] text-gray-400 mt-1 ${
                                         msg.isMine ? "self-end" : "self-start"
                                     }`}>
-                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                        {new Date(msg.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                                     </span>
                                 )}
 

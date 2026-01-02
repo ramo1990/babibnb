@@ -8,6 +8,7 @@ import { CurrentUserType, ReservationType } from '@/lib/types'
 import { useReservationCancellation } from '@/lib/useReservationCancellation'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
+import toast from 'react-hot-toast'
 
 
 interface TripsClientProps {
@@ -33,11 +34,11 @@ const TripsClient = ({reservations, currentUser}: TripsClientProps) => {
             const res = await api.post("/conversations/create/", {
                 listing_id: listingId
             })
-    
             // Redirection vers la conversation
             router.push(`/inbox/${res.data.id}`)
         } catch (error) {
             console.error("Failed to contact host", error)
+            toast.error("Impossible de contacter l'hôte. Veuillez réessayer.")
         }
     }
     

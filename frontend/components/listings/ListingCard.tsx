@@ -98,7 +98,7 @@ const ListingCard = ({data, onAction, disabled, actionLabel, actionId, reservati
                 )}
 
                 {/* Action secondaire : Contact host */}
-                {onSecondaryAction && secondaryActionLabel && (
+                {onSecondaryAction && secondaryActionLabel && secondaryActionId && (
                     <Button 
                         disabled={disabled}
                         size="sm"
