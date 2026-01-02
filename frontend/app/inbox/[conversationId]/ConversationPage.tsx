@@ -6,6 +6,7 @@ import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
 import Avatar from "@/components/Avatar"
+import axios from "axios"
 
 interface Props {
     conversationId: string
@@ -17,6 +18,7 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
+    const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
 
     const formatDateLabel = (dateString: string) => {
         const date = new Date(dateString)
@@ -57,8 +59,8 @@ const ConversationPage = ({ conversationId }: Props) => {
                     signal: abortController.signal
                 }) 
                 setMessages(msgRes.data) 
-            } catch (error: unknown) { 
-                if (error instanceof Error && 'code' in error && error.code === "ERR_CANCELED") {  
+            } catch (error) { 
+                if (axios.isCancel(error)) {  
                     return
                 } 
                 console.error("Failed to load conversation", error) 
@@ -139,7 +141,7 @@ const ConversationPage = ({ conversationId }: Props) => {
 
                                 {/* Avatar host */}
                                 {!msg.isMine && !isGrouped && (
-                                    <Avatar src={conversation?.host?.image} />
+                                    <Avatar src={otherUser?.image} />
                                 )}
 
                                 {/* Bulle */}
@@ -185,12 +187,13 @@ const ConversationPage = ({ conversationId }: Props) => {
 
                             {/* Avatar user */}
                             {msg.isMine && !isGrouped && (
-                                <Avatar src={conversation?.guest?.image} />
+                                <Avatar src={conversation.isHost ? conversation.host.image : conversation.guest.image} />
                             )}
                         </div>
                         </div>
                         )
                     })}
+                    <div ref={bottomRef} />
                 </div>
 
                 {/* Input */}
