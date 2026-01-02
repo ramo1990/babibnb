@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { MessageType, ConversationType } from "@/lib/types"
 import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
 import Avatar from "@/components/Avatar"
 import axios from "axios"
+
 
 interface Props {
     conversationId: string
@@ -104,7 +105,10 @@ const ConversationPage = ({ conversationId }: Props) => {
         return <div className="p-4">Conversation not found</div> 
     }
 
-    const lastMyMessage = messages.filter(m => m.isMine).slice(-1)[0]
+    const lastMyMessage = useMemo(
+        () => messages.filter(m => m.isMine).slice(-1)[0],
+        [messages]
+    )
 
     return (
         <Container >
@@ -201,8 +205,15 @@ const ConversationPage = ({ conversationId }: Props) => {
                     <input 
                         value={text}
                         onChange={(e) => setText(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault()
+                                sendMessage()
+                            }
+                        }}
                         className="flex-1 border rounded-lg px-4 py-2 shadow-sm"
                         placeholder="Write a message..."
+                        aria-label="Message input"
                     />
                     <Button variant="default" label="Send"
                         onClick={sendMessage}
