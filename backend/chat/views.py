@@ -8,6 +8,9 @@ from listing.models import Listing
 from rest_framework.response import Response
 from django.db.models import Q
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 # creer une conversation
 class ConversationCreateView(APIView):
@@ -41,6 +44,7 @@ class ConversationCreateView(APIView):
         return Response(ConversationSerializer(conversation, context={"request": request}).data)
 
 # envoyer un message
+# comment sécuriser l’accès aux conversations
 class MessageCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -75,8 +79,21 @@ class MessageCreateView(APIView):
             content=content.strip()
         )
 
-        # Trigger updated_at via save (auto_now=True)
+        # Mise à jour updated_at
         conversation.save(update_fields=[])
+
+        # Diffusion WebSocket 
+        layer = get_channel_layer() 
+        async_to_sync(layer.group_send)( 
+            f"chat_{conversation.id}", { 
+                "type": "chat_message", 
+                "id": str(message.id), 
+                "message": message.content, 
+                "sender": str(message.sender.id), 
+                "created_at": message.created_at.isoformat(), 
+            } 
+        )
+        
         return Response(MessageSerializer(message, context={"request": request}).data)
 
 # récupérer tous les messages d’une conversation
