@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import get_user_model
 from urllib.parse import parse_qs
+from rest_framework_simplejwt.exceptions import TokenError
 
 
 User = get_user_model()
@@ -13,7 +14,7 @@ def get_user(token_key):
     try:
         access_token = AccessToken(token_key)
         return User.objects.get(id=access_token["user_id"])
-    except Exception:
+    except (TokenError, User.DoesNotExist, KeyError):
         return AnonymousUser()
 
 class JWTAuthMiddleware(BaseMiddleware):
