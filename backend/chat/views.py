@@ -81,7 +81,7 @@ class MessageCreateView(APIView):
         )
 
         # Mise à jour updated_at
-        conversation.save(update_fields=[])
+        conversation.save()
 
         # Diffusion WebSocket 
         try: 

@@ -22,6 +22,8 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const wsRef = useRef<WebSocket | null>(null);
+    const reconnectAttempts = useRef(0); 
+    const maxReconnectAttempts = 5;
 
     const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
 
@@ -85,54 +87,64 @@ const ConversationPage = ({ conversationId }: Props) => {
     useEffect(() => {
         if (!conversation || !conversationId || !WS_URL) return;
     
-        // const ws = new WebSocket(`${WS_URL}/ws/chat/${conversationId}/`);
         // Get token from your auth store/context
         const token = localStorage.getItem("access"); // or from auth context
         const wsUrl = token 
             ? `${WS_URL}/ws/chat/${conversationId}/?token=${token}`
             : `${WS_URL}/ws/chat/${conversationId}/`;
+        
+        const connectWebSocket = () => {
+            const ws = new WebSocket(wsUrl);
+            wsRef.current = ws;
+
+            ws.onopen = () => {
+                console.log("WS connected");
+                reconnectAttempts.current = 0;
+            }
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
             
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
+                setMessages((prev) => {
+                    // éviter les doublons
+                    if (prev.some(m => m.id === data.id)) return prev;
 
-        ws.onopen = () => console.log("WS connected")
-
-        ws.onmessage = (event) => {
-            // if (!conversation) return;
-            const data = JSON.parse(event.data);
-            
-            setMessages((prev) => {
-                // éviter les doublons
-                if (prev.some(m => m.id === data.id)) return prev;
-
-                const senderUser = data.sender === conversation.host.id ? conversation.host : conversation.guest;
-                const currentUser = conversation.isHost ? conversation.host : conversation.guest;
-                
-                return [
-                    ...prev,
-                    {
-                        id: data.id,
-                        content: data.message,
-                        created_at: data.created_at ?? new Date().toISOString(),
-                        sender: senderUser,
-                        isMine: data.sender === currentUser?.id,
-                        isRead: false,
-                    }
-                ]
-            });
-        };
+                    const senderUser = data.sender === conversation.host.id ? conversation.host : conversation.guest;
+                    const currentUser = conversation.isHost ? conversation.host : conversation.guest;
+                    
+                    return [
+                        ...prev,
+                        {
+                            id: data.id,
+                            content: data.message,
+                            created_at: data.created_at ?? new Date().toISOString(),
+                            sender: senderUser,
+                            isMine: data.sender === currentUser?.id,
+                            isRead: false,
+                        }
+                    ]
+                });
+            };
     
-        ws.onerror = (err) => console.error("WS error", err);
-        ws.onclose = () => console.log("WS closed");
-    
-        return () => ws.close();
+            ws.onerror = (err) => console.error("WS error", err);
+            ws.onclose = () => {
+                console.log("WS closed");
+                if (reconnectAttempts.current < maxReconnectAttempts) { 
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); 
+                    setTimeout(connectWebSocket, delay); 
+                    reconnectAttempts.current++; 
+                }
+            }
+        }
+        connectWebSocket();
+        return () => wsRef.current?.close();
     }, [conversation, conversationId]);
     
     // Send message
     const sendMessage = async () => {
         if (!text.trim()) return
 
-        const currentUser = conversation?.isHost ? conversation.host : conversation?.guest;
+        // const currentUser = conversation?.isHost ? conversation.host : conversation?.guest;
 
         // Envoyer via API REST (sauvegarde DB)
         try {
