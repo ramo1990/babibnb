@@ -10,6 +10,7 @@ from django.db.models import Q
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import logging
 
 
 # creer une conversation
@@ -83,16 +84,21 @@ class MessageCreateView(APIView):
         conversation.save(update_fields=[])
 
         # Diffusion WebSocket 
-        layer = get_channel_layer() 
-        async_to_sync(layer.group_send)( 
-            f"chat_{conversation.id}", { 
-                "type": "chat_message", 
-                "id": str(message.id), 
-                "message": message.content, 
-                "sender": str(message.sender.id), 
-                "created_at": message.created_at.isoformat(), 
-            } 
-        )
+        try: 
+            layer = get_channel_layer() 
+            if layer: 
+                async_to_sync(layer.group_send)( 
+                    f"chat_{conversation.id}", { 
+                        "type": "chat_message", 
+                        "id": str(message.id), 
+                        "message": message.content, 
+                        "sender": str(message.sender.id), 
+                        "created_at": message.created_at.isoformat(), 
+                    } 
+                )
+        except Exception as e:
+            # Log but don't fail the request - message is already saved
+            logging.getLogger(__name__).warning(f"WebSocket broadcast failed: {e}")
         
         return Response(MessageSerializer(message, context={"request": request}).data)
 

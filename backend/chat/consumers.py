@@ -1,12 +1,26 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from chat.models import Conversation
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.conversation_id = self.scope["url_route"]["kwargs"]["conversation_id"]
         self.room_group_name = f"chat_{self.conversation_id}"
+
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close()
+            return
+        
+        # Verify user is a participant
+        is_participant = await self.check_participant(user)
+        if not is_participant:
+            await self.close()
+            return
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -14,6 +28,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
+
+    @database_sync_to_async
+    def check_participant(self, user):
+        try:
+            conversation = Conversation.objects.get(id=self.conversation_id)
+            return user in [conversation.host, conversation.guest]
+        except Conversation.DoesNotExist:
+            return False
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -31,7 +53,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "id": str(uuid.uuid4()),
                 "message": data["message"],
                 "sender": data["sender"],
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
         )
 

@@ -13,7 +13,7 @@ interface Props {
 }
 
 const MESSAGE_GROUP_THRESHOLD_MS = 2 * 60 * 1000 // 2 minutes
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL!
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? ""
 
 const ConversationPage = ({ conversationId }: Props) => {
     const [conversation, setConversation] = useState<ConversationType | null>(null)
@@ -83,9 +83,16 @@ const ConversationPage = ({ conversationId }: Props) => {
 
     // WebSocket
     useEffect(() => {
-        if (!conversation || !conversationId) return;
+        if (!conversation || !conversationId || !WS_URL) return;
     
-        const ws = new WebSocket(`${WS_URL}/ws/chat/${conversationId}/`);
+        // const ws = new WebSocket(`${WS_URL}/ws/chat/${conversationId}/`);
+        // Get token from your auth store/context
+        const token = localStorage.getItem("access"); // or from auth context
+        const wsUrl = token 
+            ? `${WS_URL}/ws/chat/${conversationId}/?token=${token}`
+            : `${WS_URL}/ws/chat/${conversationId}/`;
+            
+        const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => console.log("WS connected")
@@ -126,20 +133,14 @@ const ConversationPage = ({ conversationId }: Props) => {
         if (!text.trim()) return
 
         const currentUser = conversation?.isHost ? conversation.host : conversation?.guest;
-        // Envoyer via WebSocket 
-        // if (wsRef.current?.readyState === WebSocket.OPEN) { 
-        //     wsRef.current.send(JSON.stringify({ 
-        //         message: text, 
-        //         sender: currentUser?.id 
-        //     })); 
-        // }
+
         // Envoyer via API REST (sauvegarde DB)
         try {
             const res = await api.post("/messages/create/", {
                 conversation_id: conversationId,
                 content: text
             })
-            // setMessages((prev) => [...prev, { ...res.data, isMine: true }])
+            // Message will arrive via WebSocket broadcast
             setText("")
         } catch (error) {
             console.error("Failed to send message", error)
