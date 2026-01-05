@@ -6,12 +6,14 @@ import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
 import Avatar from "@/components/Avatar"
-import axios from "axios"
 
 
 interface Props {
     conversationId: string
 }
+
+const MESSAGE_GROUP_THRESHOLD_MS = 2 * 60 * 1000 // 2 minutes
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? ""
 
 const ConversationPage = ({ conversationId }: Props) => {
     const [conversation, setConversation] = useState<ConversationType | null>(null)
@@ -19,11 +21,13 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
-    const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
-    const MESSAGE_GROUP_THRESHOLD_MS = 2 * 60 * 1000 // 2 minutes
+    const wsRef = useRef<WebSocket | null>(null);
+    const reconnectAttempts = useRef(0); 
+    const maxReconnectAttempts = 5;
 
-    const lastMyMessage = useMemo(
-        () => messages.filter(m => m.isMine).slice(-1)[0],
+    const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
+
+    const lastMyMessage = useMemo(() => messages.filter(m => m.isMine).slice(-1)[0],
         [messages]
     )
 
@@ -33,14 +37,8 @@ const ConversationPage = ({ conversationId }: Props) => {
         const yesterday = new Date()
         yesterday.setDate(today.getDate() - 1)
     
-        const isToday =
-            date.toDateString() === today.toDateString()
-    
-        const isYesterday =
-            date.toDateString() === yesterday.toDateString()
-    
-        if (isToday) return "Aujourd’hui"
-        if (isYesterday) return "Hier"
+        if (date.toDateString() === today.toDateString()) return "Aujourd’hui"
+        if (date.toDateString() === yesterday.toDateString()) return "Hier"
     
         return date.toLocaleDateString("fr-FR", {
             weekday: "long",
@@ -67,10 +65,8 @@ const ConversationPage = ({ conversationId }: Props) => {
                 }) 
                 setMessages(msgRes.data) 
             } catch (error) { 
-                if (axios.isCancel(error)) {  
-                    return
-                } 
-                console.error("Failed to load conversation", error) 
+                if (error instanceof DOMException && error.name === "AbortError") return  
+                console.error("Failed to load conversation", error)
             } finally { 
                 if (!abortController.signal.aborted) {
                     setLoading(false)
@@ -82,24 +78,84 @@ const ConversationPage = ({ conversationId }: Props) => {
         return () => abortController.abort()
     }, [conversationId])
 
+    // Scroll auto
     useEffect(() => { 
         bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 
     }, [messages])
 
+    // WebSocket
+    useEffect(() => {
+        if (!conversation || !conversationId || !WS_URL) return;
+    
+        // Get token from your auth store/context
+        const token = localStorage.getItem("access"); // or from auth context
+        const wsUrl = token 
+            ? `${WS_URL}/ws/chat/${conversationId}/?token=${token}`
+            : `${WS_URL}/ws/chat/${conversationId}/`;
+        
+        const connectWebSocket = () => {
+            const ws = new WebSocket(wsUrl);
+            wsRef.current = ws;
+
+            ws.onopen = () => {
+                console.log("WS connected");
+                reconnectAttempts.current = 0;
+            }
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+            
+                setMessages((prev) => {
+                    // éviter les doublons
+                    if (prev.some(m => m.id === data.id)) return prev;
+
+                    const senderUser = data.sender === conversation.host.id ? conversation.host : conversation.guest;
+                    const currentUser = conversation.isHost ? conversation.host : conversation.guest;
+                    
+                    return [
+                        ...prev,
+                        {
+                            id: data.id,
+                            content: data.message,
+                            created_at: data.created_at ?? new Date().toISOString(),
+                            sender: senderUser,
+                            isMine: data.sender === currentUser?.id,
+                            isRead: false,
+                        }
+                    ]
+                });
+            };
+    
+            ws.onerror = (err) => console.error("WS error", err);
+            ws.onclose = () => {
+                console.log("WS closed");
+                if (reconnectAttempts.current < maxReconnectAttempts) { 
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); 
+                    setTimeout(connectWebSocket, delay); 
+                    reconnectAttempts.current++; 
+                }
+            }
+        }
+        connectWebSocket();
+        return () => wsRef.current?.close();
+    }, [conversation, conversationId]);
+    
+    // Send message
     const sendMessage = async () => {
         if (!text.trim()) return
 
+        // const currentUser = conversation?.isHost ? conversation.host : conversation?.guest;
+
+        // Envoyer via API REST (sauvegarde DB)
         try {
             const res = await api.post("/messages/create/", {
                 conversation_id: conversationId,
                 content: text
             })
-    
-            setMessages((prev) => [...prev, { ...res.data, isMine: true }])
+            // Message will arrive via WebSocket broadcast
             setText("")
         } catch (error) {
             console.error("Failed to send message", error)
-            // Consider showing a user-facing error message
         }
     }
 
