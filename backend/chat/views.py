@@ -116,17 +116,15 @@ class ConversationMessagesView(APIView):
             )
         
         # Marquer les messages de l'autre utilisateur comme lus 
-        conversation.messages.filter( 
-            is_read=False 
-        ).exclude(sender=request.user).update(is_read=True)
-
-        # # Récupérer les IDs des messages qui viennent d'être marqués comme lus
-        read_messages = list(
-            conversation.messages
-                .filter(is_read=True)
-                .exclude(sender=request.user)
-                .values_list("id", flat=True)
+        unread_messages = list(
+            conversation.messages.filter( 
+                is_read=False 
+            ).exclude(sender=request.user).values_list("id", flat=True)
         )
+
+        conversation.messages.filter( 
+             is_read=False 
+         ).exclude(sender=request.user).update(is_read=True)
 
         # Diffuser via WebSocket
         try: 
@@ -136,7 +134,7 @@ class ConversationMessagesView(APIView):
                     f"chat_{str(conversation.id)}",
                     {
                         "type": "read_receipt",
-                        "message_ids": [str(mid) for mid in read_messages],
+                        "message_ids": [str(mid) for mid in unread_messages],
                     }
                 )
         except Exception as e:

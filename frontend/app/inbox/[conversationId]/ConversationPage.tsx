@@ -5,7 +5,7 @@ import { MessageType, ConversationType } from "@/lib/types"
 import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
-import axios from "axios"
+import axios, { isCancel } from "axios"
 
 import { formatDateLabel } from "@/lib/dates"
 import { useChatWebSocket } from "@/lib/useChatWebSocket"
@@ -24,18 +24,21 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
-
-    // const lastMyMessage = useMemo(() => messages.filter(m => m.isMine).slice(-1)[0],
-    //     [messages]
-    // )  
-    const lastMyMessage = useMemo(() => {
-        const sorted = [...messages].sort(
-            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        )
-        return sorted.filter(m => m.isMine).slice(-1)[0]
-    }, [messages])
+ 
     
     const wsRef = useChatWebSocket({ conversationId, setMessages })
+
+    const sortedMessages = useMemo(() => {
+        return [...messages].sort(
+            (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+        )
+    }, [messages])
+
+    const lastMyMessage = useMemo(() => {
+        return sortedMessages.filter(m => m.isMine).slice(-1)[0]
+    }, [sortedMessages])
 
     // Fetch conversation + messages 
     useEffect(() => { 
@@ -53,8 +56,8 @@ const ConversationPage = ({ conversationId }: Props) => {
                     { signal: abortController.signal }
                 ) 
                 setMessages(msgRes.data) 
-            } catch (error: any) { 
-                if (axios.isCancel(error)) {
+            } catch (error: unknown) { 
+                if (isCancel(error)) {
                     // Requête annulée, pas besoin de log
                     return;
                 }
@@ -103,7 +106,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                 }))
             } catch (err) {
                 console.error("Failed to send message:", err)
-                // Rollback optimistic message or show error toast
+                setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
            }
         } else {
             // Rollback optimistic message or show error
@@ -111,14 +114,6 @@ const ConversationPage = ({ conversationId }: Props) => {
             console.error("WebSocket not connected")
         }
     }
-
-    const sortedMessages = useMemo(() => {
-        return [...messages].sort(
-            (a, b) =>
-                new Date(a.created_at).getTime() -
-                new Date(b.created_at).getTime()
-        )
-    }, [messages])
 
     if (loading) { 
         return <div className="p-4">Loading conversation...</div> 

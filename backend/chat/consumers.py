@@ -66,22 +66,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         # Construction du message pour le front
         safe_message = build_safe_message(message, self.conversation_id, client_id)
-        # safe_message = { 
-        #     "id": str(message.id), 
-        #     "client_id": client_id, 
-        #     # pour remplacer le message temporaire 
-        #     "conversation": str(self.conversation_id), 
-        #     "content": message.content, 
-        #     "created_at": message.created_at.isoformat(), 
-        #     "sender": { 
-        #         "id": str(user.id), 
-        #         "name": user.name, 
-        #         "email": user.email or "", 
-        #         "image": user.image.url if user.image else None, 
-        #         "favoriteIds": [], 
-        #     }, 
-        #     "is_read": False 
-        # }
 
         # Diffusion à tous les clients
         await self.channel_layer.group_send(

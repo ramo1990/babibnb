@@ -10,7 +10,7 @@ def build_safe_message(message, conversation_id, client_id=None):
             "name": message.sender.name,
             "email": message.sender.email or "",
             "image": message.sender.image.url if message.sender.image else None,
-            "favoriteIds": [],
+            "favoriteIds": [], # TODO: Populate from user favorites when implemented
         },
         "is_read": message.is_read
     }
