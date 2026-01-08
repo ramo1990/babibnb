@@ -5,7 +5,11 @@ import { MessageType, ConversationType } from "@/lib/types"
 import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
-import Avatar from "@/components/Avatar"
+import axios from "axios"
+
+import { formatDateLabel } from "@/lib/dates"
+import { useChatWebSocket } from "@/lib/useChatWebSocket"
+import { MessageItem } from "@/components/inbox/MessageItem"
 
 
 interface Props {
@@ -13,7 +17,6 @@ interface Props {
 }
 
 const MESSAGE_GROUP_THRESHOLD_MS = 2 * 60 * 1000 // 2 minutes
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? ""
 
 const ConversationPage = ({ conversationId }: Props) => {
     const [conversation, setConversation] = useState<ConversationType | null>(null)
@@ -21,33 +24,15 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
-    const wsRef = useRef<WebSocket | null>(null);
-    const reconnectAttempts = useRef(0); 
-    const maxReconnectAttempts = 5;
-
-    const otherUser = conversation?.isHost ? conversation?.guest : conversation?.host
 
     const lastMyMessage = useMemo(() => messages.filter(m => m.isMine).slice(-1)[0],
         [messages]
-    )
+    )  
+    
+    // useChatWebSocket({ conversationId, setMessages })
+    const wsRef = useChatWebSocket({ conversationId, setMessages })
 
-    const formatDateLabel = (dateString: string) => {
-        const date = new Date(dateString)
-        const today = new Date()
-        const yesterday = new Date()
-        yesterday.setDate(today.getDate() - 1)
-    
-        if (date.toDateString() === today.toDateString()) return "Aujourd’hui"
-        if (date.toDateString() === yesterday.toDateString()) return "Hier"
-    
-        return date.toLocaleDateString("fr-FR", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        })
-    }
-    
+
     // Fetch conversation + messages 
     useEffect(() => { 
         const abortController = new AbortController()
@@ -60,12 +45,17 @@ const ConversationPage = ({ conversationId }: Props) => {
                 setConversation(convRes.data) 
                 
                 // Messages 
-                const msgRes = await api.get(`/conversations/${conversationId}/`, {
-                    signal: abortController.signal
-                }) 
+                const msgRes = await api.get(`/conversations/${conversationId}/`, 
+                {signal: abortController.signal}
+                ) 
                 setMessages(msgRes.data) 
-            } catch (error) { 
-                if (error instanceof DOMException && error.name === "AbortError") return  
+            } catch (error: any) { 
+                // if (error instanceof DOMException && error.name === "AbortError") return  
+                // console.error("Failed to load conversation", error)
+                if (axios.isCancel(error)) {
+                    // Requête annulée, pas besoin de log
+                    return;
+                }
                 console.error("Failed to load conversation", error)
             } finally { 
                 if (!abortController.signal.aborted) {
@@ -81,83 +71,41 @@ const ConversationPage = ({ conversationId }: Props) => {
     // Scroll auto
     useEffect(() => { 
         bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 
-    }, [messages])
-
-    // WebSocket
-    useEffect(() => {
-        if (!conversation || !conversationId || !WS_URL) return;
-    
-        // Get token from your auth store/context
-        const token = localStorage.getItem("access"); // or from auth context
-        const wsUrl = token 
-            ? `${WS_URL}/ws/chat/${conversationId}/?token=${token}`
-            : `${WS_URL}/ws/chat/${conversationId}/`;
-        
-        const connectWebSocket = () => {
-            const ws = new WebSocket(wsUrl);
-            wsRef.current = ws;
-
-            ws.onopen = () => {
-                console.log("WS connected");
-                reconnectAttempts.current = 0;
-            }
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-            
-                setMessages((prev) => {
-                    // éviter les doublons
-                    if (prev.some(m => m.id === data.id)) return prev;
-
-                    const senderUser = data.sender === conversation.host.id ? conversation.host : conversation.guest;
-                    const currentUser = conversation.isHost ? conversation.host : conversation.guest;
-                    
-                    return [
-                        ...prev,
-                        {
-                            id: data.id,
-                            content: data.message,
-                            created_at: data.created_at ?? new Date().toISOString(),
-                            sender: senderUser,
-                            isMine: data.sender === currentUser?.id,
-                            isRead: false,
-                        }
-                    ]
-                });
-            };
-    
-            ws.onerror = (err) => console.error("WS error", err);
-            ws.onclose = () => {
-                console.log("WS closed");
-                if (reconnectAttempts.current < maxReconnectAttempts) { 
-                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); 
-                    setTimeout(connectWebSocket, delay); 
-                    reconnectAttempts.current++; 
-                }
-            }
-        }
-        connectWebSocket();
-        return () => wsRef.current?.close();
-    }, [conversation, conversationId]);
+    }, [messages])   
     
     // Send message
     const sendMessage = async () => {
-        if (!text.trim()) return
+        if (!text.trim() || !conversation) return
 
-        // const currentUser = conversation?.isHost ? conversation.host : conversation?.guest;
-
-        // Envoyer via API REST (sauvegarde DB)
-        try {
-            const res = await api.post("/messages/create/", {
-                conversation_id: conversationId,
-                content: text
-            })
-            // Message will arrive via WebSocket broadcast
-            setText("")
-        } catch (error) {
-            console.error("Failed to send message", error)
+        const optimisticMessage: MessageType = {
+            id: `temp-${Date.now()}`, // ID temporaire
+            content: text,
+            created_at: new Date().toISOString(),
+            sender: conversation.isHost ? conversation.host : conversation.guest,
+            isMine: true,
+            isRead: false,
         }
+
+        // affichage immédiat
+        setMessages(prev => [...prev, optimisticMessage])
+        setText("")
+
+        // ENVOI WEBSOCKET (manquant avant)
+        wsRef.current?.send(JSON.stringify({ 
+            type: "send_message", 
+            content: optimisticMessage.content, 
+            client_id: optimisticMessage.id 
+        }))
+
     }
+
+    const sortedMessages = useMemo(() => {
+        return [...messages].sort(
+            (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+        )
+    }, [messages])
 
     if (loading) { 
         return <div className="p-4">Loading conversation...</div> 
@@ -173,85 +121,39 @@ const ConversationPage = ({ conversationId }: Props) => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                    {messages.map((msg, index) => {
+                    {sortedMessages.map((msg, index) => {
                         const currentDate = new Date(msg.created_at).toDateString()
-                        const previousDate = index > 0 ? new Date(messages[index - 1].created_at).toDateString() : null
+                        const previousDate = index > 0 ? new Date(sortedMessages[index - 1].created_at).toDateString() : null
                         const showDateSeparator = currentDate !== previousDate
 
                         // Grouper les messages
-                        const previousMsg = messages[index - 1]
+                        const previousMsg = sortedMessages[index - 1]
                         const isSameAuthor = previousMsg && previousMsg.isMine === msg.isMine
                         const isCloseInTime = previousMsg &&
                             Math.abs(new Date(msg.created_at).getTime() - new Date(previousMsg.created_at).getTime()) < MESSAGE_GROUP_THRESHOLD_MS
 
                         const isGrouped = isSameAuthor && isCloseInTime && !showDateSeparator
+                        const isLastMyMessage = msg.id === lastMyMessage?.id
 
                         return(
                             <div key={msg.id} className="flex flex-col">
                                 {/* Séparateur de date */}
                                 {showDateSeparator && (
                                     <div className="w-full text-center my-4">
-                                        <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
-                                            {formatDateLabel(msg.created_at)}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Bulle de message + avatar */}
-                                <div className={`flex items-end gap-2 ${ msg.isMine ? "justify-end" : "justify-start"}`}>
-
-                                {/* Avatar host */}
-                                {!msg.isMine && !isGrouped && (
-                                    <Avatar src={otherUser?.image} />
-                                )}
-
-                                {/* Bulle */}
-                                <div className="flex flex-col max-w-[70%]">
-                                    <div className={`px-4 py-2 text-sm shadow-sm ${
-                                            msg.isMine ? "bg-blue-400 text-white ml-auto self-end" 
-                                                : "bg-gray-100 text-gray-800 self-start"
-                                        } ${isGrouped ? "rounded-2xl" : msg.isMine ? "rounded-2xl rounded-br-none" : "rounded-2xl rounded-bl-none"
-                                    }`}
-                                    >
-                                    {msg.content}
-                                </div>
-                                
-                                {/* Timestamp */}
-                                {!isGrouped && (
-                                    <span className={`text-[10px] text-gray-400 mt-1 ${
-                                        msg.isMine ? "self-end" : "self-start"
-                                    }`}>
-                                        {new Date(msg.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                    <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                                        {formatDateLabel(msg.created_at)}
                                     </span>
-                                )}
-
-                                {/* Statut “envoyé / vu” */}
-                                {msg.isMine && msg.id === lastMyMessage?.id && (
-                                    <div className="flex items-center gap-1 mt-1 self-end">
-
-                                        {/* Si pas encore lu */}
-                                        {!msg.isRead && (
-                                            <span className="text-[10px] text-gray-400">Envoyé</span>
-                                        )}
-
-                                        {/* Si lu */}
-                                        {msg.isRead && (
-                                            <div className="flex items-center gap-1">
-                                                {/* <Avatar src={conversation?.host?.image} /> */}
-                                                <span className="text-[10px] text-gray-400">Vu</span>
-                                            </div>
-                                        )}
                                     </div>
                                 )}
 
+                                {/* Message */}
+                                <MessageItem
+                                    msg={msg}
+                                    isGrouped={isGrouped}
+                                    isLastMyMessage={isLastMyMessage}
+                                    conversation={conversation}
+                                />
                             </div>
-
-                            {/* Avatar user */}
-                            {msg.isMine && !isGrouped && (
-                                <Avatar src={conversation.isHost ? conversation.host.image : conversation.guest.image} />
-                            )}
-                        </div>
-                        </div>
                         )
                     })}
                     <div ref={bottomRef} />

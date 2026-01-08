@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from datetime import datetime, timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -8,7 +9,8 @@ from chat.models import Conversation
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.conversation_id = self.scope["url_route"]["kwargs"]["conversation_id"]
+        raw_id = self.scope["url_route"]["kwargs"]["conversation_id"]
+        self.conversation_id = str(raw_id)
         self.room_group_name = f"chat_{self.conversation_id}"
 
         user = self.scope.get("user")
@@ -46,21 +48,64 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
 
+        msg_type = data.get("type") 
+        content = data.get("content") 
+        client_id = data.get("client_id") 
+        user = self.scope["user"]
+
+        if msg_type != "send_message": 
+            return
+        
+        if not content or not content.strip(): 
+            return
+        # Sauvegarde en base 
+        message = await self.create_message( sender=user, content=content.strip())
+
+        # Construction du message pour le front
+        safe_message = { 
+            "id": str(message.id), 
+            "client_id": client_id, 
+            # pour remplacer le message temporaire 
+            "conversation": str(self.conversation_id), 
+            "content": message.content, 
+            "created_at": message.created_at.isoformat(), 
+            "sender": { 
+                "id": str(user.id), 
+                "name": user.name, 
+                "email": user.email or "", 
+                "image": user.image.url if user.image else None, 
+                "favoriteIds": [], 
+            }, 
+            "is_read": False 
+        }
+        print("SAFE MESSAGE:", safe_message)
+        # Diffusion à tous les clients
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "chat_message",
-                "id": str(uuid.uuid4()),
-                "message": data["message"],
-                "sender": data["sender"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "message": safe_message,
             }
         )
 
-    async def chat_message(self, event):
+    @database_sync_to_async
+    def create_message(self, sender, content):
+        from chat.models import Message, Conversation
+        conversation = Conversation.objects.get(id=self.conversation_id)
+        return Message.objects.create(
+            conversation=conversation,
+            sender=sender,
+            content=content
+        )
+
+    async def chat_message(self, event): 
+        await self.send(text_data=json.dumps({ 
+            "type": "new_message", 
+            "message": event["message"] 
+            }))
+        
+    async def read_receipt(self, event):
         await self.send(text_data=json.dumps({
-            "id": event["id"],
-            "message": event["message"],
-            "sender": event["sender"],
-            "created_at": event["created_at"],
+            "type": "read_receipt",
+            "message_ids": event["message_ids"],
         }))

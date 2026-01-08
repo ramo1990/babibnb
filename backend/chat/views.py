@@ -1,3 +1,4 @@
+import os
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -11,6 +12,8 @@ from django.db.models import Q
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 # creer une conversation
@@ -80,20 +83,32 @@ class MessageCreateView(APIView):
             content=content.strip()
         )
 
-        # Mise à jour updated_at
-        conversation.save()
-
         # Diffusion WebSocket 
+        serialized = MessageSerializer(message, context={"request": request}).data
+
+        # Sécuriser les UUID et tous les champs requis
+        safe_message = {
+            "id": str(message.id),
+            "conversation": str(conversation.id),
+            "content": message.content,
+            "created_at": message.created_at.isoformat(),
+            "sender": {
+                "id": str(message.sender.id),
+                "name": message.sender.name,
+                "email": message.sender.email or "",
+                "image": message.sender.image.url if message.sender.image else None,
+                "favoriteIds": [],  # ou message.sender.favoriteIds si tu les as
+            },
+            "is_read": False
+        }
+
         try: 
             layer = get_channel_layer() 
             if layer: 
                 async_to_sync(layer.group_send)( 
-                    f"chat_{conversation.id}", { 
+                    f"chat_{str(conversation.id)}", { 
                         "type": "chat_message", 
-                        "id": str(message.id), 
-                        "message": message.content, 
-                        "sender": str(message.sender.id), 
-                        "created_at": message.created_at.isoformat(), 
+                        "message": safe_message,
                     } 
                 )
         except Exception as e:
@@ -120,7 +135,25 @@ class ConversationMessagesView(APIView):
         conversation.messages.filter( 
             is_read=False 
         ).exclude(sender=request.user).update(is_read=True)
-        
+
+        # Récupérer les IDs des messages lus
+        read_messages = list(
+            conversation.messages
+                .filter(is_read=True)
+                .exclude(sender=request.user)
+                .values_list("id", flat=True)
+        )
+
+        # Diffuser via WebSocket
+        layer = get_channel_layer()
+        async_to_sync(layer.group_send)(
+            f"chat_{str(conversation.id)}",
+            {
+                "type": "read_receipt",
+                "message_ids": [str(mid) for mid in read_messages],
+            }
+        )
+
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
 
