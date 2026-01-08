@@ -2,6 +2,8 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+
+from chat.utils import build_safe_message
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from listing.models import Listing
@@ -81,20 +83,7 @@ class MessageCreateView(APIView):
         )
 
         # Sécuriser les UUID et tous les champs requis
-        safe_message = {
-            "id": str(message.id),
-            "conversation": str(conversation.id),
-            "content": message.content,
-            "created_at": message.created_at.isoformat(),
-            "sender": {
-                "id": str(message.sender.id),
-                "name": message.sender.name,
-                "email": message.sender.email or "",
-                "image": message.sender.image.url if message.sender.image else None,
-                "favoriteIds": [],  # ou message.sender.favoriteIds si tu les as
-            },
-            "is_read": False
-        }
+        safe_message = build_safe_message(message, conversation.id)
 
         # Diffuser via WebSocket
         try: 
@@ -131,7 +120,7 @@ class ConversationMessagesView(APIView):
             is_read=False 
         ).exclude(sender=request.user).update(is_read=True)
 
-        # Récupérer les IDs des messages lus
+        # # Récupérer les IDs des messages qui viennent d'être marqués comme lus
         read_messages = list(
             conversation.messages
                 .filter(is_read=True)

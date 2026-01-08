@@ -25,9 +25,15 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
 
-    const lastMyMessage = useMemo(() => messages.filter(m => m.isMine).slice(-1)[0],
-        [messages]
-    )  
+    // const lastMyMessage = useMemo(() => messages.filter(m => m.isMine).slice(-1)[0],
+    //     [messages]
+    // )  
+    const lastMyMessage = useMemo(() => {
+        const sorted = [...messages].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+        return sorted.filter(m => m.isMine).slice(-1)[0]
+    }, [messages])
     
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
@@ -44,12 +50,10 @@ const ConversationPage = ({ conversationId }: Props) => {
                 
                 // Messages 
                 const msgRes = await api.get(`/conversations/${conversationId}/`, 
-                {signal: abortController.signal}
+                    { signal: abortController.signal }
                 ) 
                 setMessages(msgRes.data) 
             } catch (error: any) { 
-                // if (error instanceof DOMException && error.name === "AbortError") return  
-                // console.error("Failed to load conversation", error)
                 if (axios.isCancel(error)) {
                     // Requête annulée, pas besoin de log
                     return;
@@ -77,7 +81,7 @@ const ConversationPage = ({ conversationId }: Props) => {
 
         const optimisticMessage: MessageType = {
             // id: `temp-${Date.now()}`, // ID temporaire
-            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // ID temporaire unique
+            id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, // ID temporaire unique
             content: text,
             created_at: new Date().toISOString(),
             sender: conversation.isHost ? conversation.host : conversation.guest,

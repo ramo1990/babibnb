@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from chat.utils import build_safe_message
 from chat.models import Conversation
 
 
@@ -58,23 +59,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Sauvegarde en base 
         message = await self.create_message( sender=user, content=content.strip())
 
+        if message is None:
+            # Conversation doesn't exist or was deleted
+            await self.close()
+            return
+        
         # Construction du message pour le front
-        safe_message = { 
-            "id": str(message.id), 
-            "client_id": client_id, 
-            # pour remplacer le message temporaire 
-            "conversation": str(self.conversation_id), 
-            "content": message.content, 
-            "created_at": message.created_at.isoformat(), 
-            "sender": { 
-                "id": str(user.id), 
-                "name": user.name, 
-                "email": user.email or "", 
-                "image": user.image.url if user.image else None, 
-                "favoriteIds": [], 
-            }, 
-            "is_read": False 
-        }
+        safe_message = build_safe_message(message, self.conversation_id, client_id)
+        # safe_message = { 
+        #     "id": str(message.id), 
+        #     "client_id": client_id, 
+        #     # pour remplacer le message temporaire 
+        #     "conversation": str(self.conversation_id), 
+        #     "content": message.content, 
+        #     "created_at": message.created_at.isoformat(), 
+        #     "sender": { 
+        #         "id": str(user.id), 
+        #         "name": user.name, 
+        #         "email": user.email or "", 
+        #         "image": user.image.url if user.image else None, 
+        #         "favoriteIds": [], 
+        #     }, 
+        #     "is_read": False 
+        # }
 
         # Diffusion à tous les clients
         await self.channel_layer.group_send(
