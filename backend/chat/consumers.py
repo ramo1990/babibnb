@@ -1,7 +1,4 @@
 import json
-import os
-import uuid
-from datetime import datetime, timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from chat.models import Conversation
@@ -78,7 +75,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }, 
             "is_read": False 
         }
-        print("SAFE MESSAGE:", safe_message)
+
         # Diffusion à tous les clients
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -91,12 +88,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_message(self, sender, content):
         from chat.models import Message, Conversation
-        conversation = Conversation.objects.get(id=self.conversation_id)
-        return Message.objects.create(
-            conversation=conversation,
-            sender=sender,
-            content=content
-        )
+        try:
+            conversation = Conversation.objects.get(id=self.conversation_id)
+            return Message.objects.create(
+                conversation=conversation,
+                sender=sender,
+                content=content
+            )
+        except Conversation.DoesNotExist:
+            return None
 
     async def chat_message(self, event): 
         await self.send(text_data=json.dumps({ 

@@ -45,14 +45,14 @@ export const MessageItem = ({msg, isGrouped, isLastMyMessage, conversation}: Pro
               msg.isMine ? "self-end" : "self-start"
             }`}
           >
-            {new Date(msg.created_at).toLocaleTimeString("fr-FR", {
+            {new Date(msg.created_at).toLocaleTimeString(undefined, {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
         )}
 
-        {/* Statut */}
+        {/* Statut TODO: utiliser les symboles */}
         {msg.isMine && isLastMyMessage && (
           <span className="text-[10px] text-gray-400 mt-1 self-end">
             {msg.isRead ? "Vu" : "Envoyé"}

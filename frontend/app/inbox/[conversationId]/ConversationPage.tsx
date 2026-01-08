@@ -29,9 +29,7 @@ const ConversationPage = ({ conversationId }: Props) => {
         [messages]
     )  
     
-    // useChatWebSocket({ conversationId, setMessages })
     const wsRef = useChatWebSocket({ conversationId, setMessages })
-
 
     // Fetch conversation + messages 
     useEffect(() => { 
@@ -78,7 +76,8 @@ const ConversationPage = ({ conversationId }: Props) => {
         if (!text.trim() || !conversation) return
 
         const optimisticMessage: MessageType = {
-            id: `temp-${Date.now()}`, // ID temporaire
+            // id: `temp-${Date.now()}`, // ID temporaire
+            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // ID temporaire unique
             content: text,
             created_at: new Date().toISOString(),
             sender: conversation.isHost ? conversation.host : conversation.guest,
@@ -90,13 +89,23 @@ const ConversationPage = ({ conversationId }: Props) => {
         setMessages(prev => [...prev, optimisticMessage])
         setText("")
 
-        // ENVOI WEBSOCKET (manquant avant)
-        wsRef.current?.send(JSON.stringify({ 
-            type: "send_message", 
-            content: optimisticMessage.content, 
-            client_id: optimisticMessage.id 
-        }))
-
+        // ENVOI WEBSOCKET 
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+           try {
+                wsRef.current.send(JSON.stringify({ 
+                    type: "send_message", 
+                    content: optimisticMessage.content, 
+                    client_id: optimisticMessage.id 
+                }))
+            } catch (err) {
+                console.error("Failed to send message:", err)
+                // Rollback optimistic message or show error toast
+           }
+        } else {
+            // Rollback optimistic message or show error
+            setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+            console.error("WebSocket not connected")
+        }
     }
 
     const sortedMessages = useMemo(() => {

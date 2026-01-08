@@ -44,11 +44,9 @@ export const useChatWebSocket = ({ conversationId, setMessages }: Params) => {
         
           if (data.type === "new_message" && data.message) {
             const raw = data.message
-            console.log("ADDING MESSAGE", raw.id)
 
             // Sécurisation complète
             const sender = raw.sender || { id: "unknown", name: "Unknown", image: null }
-            console.log("WS sender.id =", sender.id, "currentUserId =", currentUserId)
 
             const msg: MessageType = {
                 id: String(raw.id),
@@ -66,18 +64,6 @@ export const useChatWebSocket = ({ conversationId, setMessages }: Params) => {
             }
 
             setMessages(prev => {
-              
-            //   if (prev.some(m => String(m.id) === String(raw.id))) return prev
-
-              // Vérifier si un message temporaire existe
-            //   const tempIndex = prev.findIndex(
-            //     m => String(m.id).startsWith("temp-") && m.content === msg.content
-            //   )
-            //   if (tempIndex !== -1) {
-            //     const updated = [...prev]
-            //     updated[tempIndex] = msg
-            //     return updated
-            //   }
 
             // Si un message temporaire correspond au client_id → on le remplace
             if (raw.client_id) { 

@@ -1,4 +1,3 @@
-import os
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -12,8 +11,6 @@ from django.db.models import Q
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
-import json
-from django.core.serializers.json import DjangoJSONEncoder
 
 
 # creer une conversation
@@ -83,9 +80,6 @@ class MessageCreateView(APIView):
             content=content.strip()
         )
 
-        # Diffusion WebSocket 
-        serialized = MessageSerializer(message, context={"request": request}).data
-
         # Sécuriser les UUID et tous les champs requis
         safe_message = {
             "id": str(message.id),
@@ -102,6 +96,7 @@ class MessageCreateView(APIView):
             "is_read": False
         }
 
+        # Diffuser via WebSocket
         try: 
             layer = get_channel_layer() 
             if layer: 
@@ -145,14 +140,18 @@ class ConversationMessagesView(APIView):
         )
 
         # Diffuser via WebSocket
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            f"chat_{str(conversation.id)}",
-            {
-                "type": "read_receipt",
-                "message_ids": [str(mid) for mid in read_messages],
-            }
-        )
+        try: 
+            layer = get_channel_layer()
+            if layer:
+                async_to_sync(layer.group_send)(
+                    f"chat_{str(conversation.id)}",
+                    {
+                        "type": "read_receipt",
+                        "message_ids": [str(mid) for mid in read_messages],
+                    }
+                )
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"WebSocket read_receipt broadcast failed: {e}")
 
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)

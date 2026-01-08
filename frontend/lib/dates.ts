@@ -1,5 +1,6 @@
 export const formatDateLabel = (dateString: string) => {
     const date = new Date(dateString)
+    if (isNaN(date.getTime())) return dateString
     const today = new Date()
     const yesterday = new Date()
   
