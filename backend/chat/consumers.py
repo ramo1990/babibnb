@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from chat.utils import build_safe_message
-from chat.models import Conversation
+from chat.models import Message, Conversation
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -78,7 +78,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def create_message(self, sender, content):
-        from chat.models import Message, Conversation
         try:
             conversation = Conversation.objects.get(id=self.conversation_id)
             return Message.objects.create(

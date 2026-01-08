@@ -90,7 +90,7 @@ class MessageCreateView(APIView):
             layer = get_channel_layer() 
             if layer: 
                 async_to_sync(layer.group_send)( 
-                    f"chat_{str(conversation.id)}", { 
+                    f"chat_{conversation.id!s}", { 
                         "type": "chat_message", 
                         "message": safe_message,
                     } 
@@ -131,7 +131,7 @@ class ConversationMessagesView(APIView):
             layer = get_channel_layer()
             if layer:
                 async_to_sync(layer.group_send)(
-                    f"chat_{str(conversation.id)}",
+                    f"chat_{conversation.id!s}",
                     {
                         "type": "read_receipt",
                         "message_ids": [str(mid) for mid in unread_messages],

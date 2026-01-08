@@ -5,7 +5,7 @@ import { MessageType, ConversationType } from "@/lib/types"
 import { api } from "@/lib/axios"
 import Container from "@/components/Container"
 import { Button } from "@/components/ui/button"
-import axios, { isCancel } from "axios"
+import { isCancel } from "axios"
 
 import { formatDateLabel } from "@/lib/dates"
 import { useChatWebSocket } from "@/lib/useChatWebSocket"
@@ -24,7 +24,7 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
- 
+    const [sending, setSending] = useState(false)
     
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
@@ -74,13 +74,15 @@ const ConversationPage = ({ conversationId }: Props) => {
     }, [conversationId])
 
     // Scroll auto
+    // TODO: checking if the user is already near the bottom before scrolling
     useEffect(() => { 
         bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 
     }, [messages])   
     
     // Send message
     const sendMessage = async () => {
-        if (!text.trim() || !conversation) return
+        if (!text.trim() || !conversation || sending) return
+        setSending(true)
 
         const optimisticMessage: MessageType = {
             // id: `temp-${Date.now()}`, // ID temporaire
@@ -104,14 +106,20 @@ const ConversationPage = ({ conversationId }: Props) => {
                     content: optimisticMessage.content, 
                     client_id: optimisticMessage.id 
                 }))
+                setSending(false)
             } catch (err) {
                 console.error("Failed to send message:", err)
                 setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
-           }
+                // Add toast notification or error state
+                alert("Failed to send message. Please try again.")
+                setSending(false)
+            }
         } else {
             // Rollback optimistic message or show error
             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
             console.error("WebSocket not connected")
+            alert("Not connected. Please check your connection.")
+            setSending(false)
         }
     }
 
@@ -170,6 +178,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                 {/* Input */}
                 <div className="p-4 border-t flex gap-2">
                     <input 
+                        disabled={sending}
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         onKeyDown={(e) => {
@@ -182,7 +191,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                         placeholder="Write a message..."
                         aria-label="Message input"
                     />
-                    <Button variant="default" label="Send"
+                    <Button variant="default" label="Send" disabled={sending}
                         onClick={sendMessage}
                         className="w-auto px-3 py-2 rounded-lg"
                     />
