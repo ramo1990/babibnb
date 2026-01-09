@@ -99,7 +99,7 @@ class MessageCreateView(APIView):
                 )
         except Exception:
             # Log but don't fail the request - message is already saved
-            logging.warning("WebSocket broadcast failed", exc_info=True)
+            logger.warning("WebSocket broadcast failed", exc_info=True)
         
         return Response(MessageSerializer(message, context={"request": request}).data)
 
@@ -144,7 +144,7 @@ class ConversationMessagesView(APIView):
                     }
                 )
         except Exception:
-            logging.warning(f"WebSocket read_receipt broadcast failed", exc_info=True)
+            logging.warning("WebSocket read_receipt broadcast failed", exc_info=True)
 
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)

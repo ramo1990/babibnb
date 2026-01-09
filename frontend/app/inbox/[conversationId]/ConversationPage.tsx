@@ -26,6 +26,7 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const [sending, setSending] = useState(false)
+    const sendingRef = useRef(false)
     
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
@@ -81,7 +82,8 @@ const ConversationPage = ({ conversationId }: Props) => {
     
     // Send message
     const sendMessage = async () => {
-        if (!text.trim() || !conversation || sending) return
+        if (!text.trim() || !conversation || sendingRef.current) return
+        sendingRef.current = true
         setSending(true)
 
         const optimisticMessage: MessageType = {
@@ -98,26 +100,28 @@ const ConversationPage = ({ conversationId }: Props) => {
         setText("")
 
         // ENVOI WEBSOCKET 
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-           try {
-                wsRef.current.send(JSON.stringify({ 
-                    type: "send_message", 
-                    content: optimisticMessage.content, 
-                    client_id: optimisticMessage.id 
-                }))
-                setSending(false)
-            } catch (err) {
-                console.error("Failed to send message:", err)
-                setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
-                // Add toast notification or error state
-                toast("Failed to send message. Please try again.")
-                setSending(false)
-            }
-        } else {
-            // Rollback optimistic message or show error
+        // if (wsRef.current?.readyState === WebSocket.OPEN) {
+        try {
+            if (wsRef.current?.readyState !== WebSocket.OPEN) {
             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
             console.error("WebSocket not connected")
             toast("Not connected. Please check your connection.")
+            return
+            }
+                try {
+                    wsRef.current.send(JSON.stringify({ 
+                        type: "send_message", 
+                        content: optimisticMessage.content, 
+                        client_id: optimisticMessage.id 
+                    }))
+                } catch (err) {
+                    console.error("Failed to send message:", err)
+                    setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+                    // Add toast notification or error state
+                    toast("Failed to send message. Please try again.")
+                }
+        } finally {
+            sendingRef.current = false
             setSending(false)
         }
     }

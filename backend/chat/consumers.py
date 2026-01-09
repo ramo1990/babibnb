@@ -92,7 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             content=content
         )
         # Keep ConversationListView ordering fresh on new messages
-        conversation.save(update_fields=["update_at"])
+        conversation.save(update_fields=["updated_at"])
         return message
 
     async def chat_message(self, event): 
