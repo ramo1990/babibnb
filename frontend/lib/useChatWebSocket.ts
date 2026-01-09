@@ -12,9 +12,8 @@ export const useChatWebSocket = ({ conversationId, setMessages }: Params) => {
   const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
-    if (!conversationId || !WS_URL) return
-
     const token = localStorage.getItem("access")
+    if (!conversationId || !WS_URL || !token) return
     const currentUserId = localStorage.getItem("user_id") // utiliser auth
     let reconnectAttempts = 0
     const maxReconnectAttempts = 5

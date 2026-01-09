@@ -69,7 +69,9 @@ const InboxClient = () => {
 
     // Error state
     if (error) {
-        return <EmptyState title="Error" subtitle={error} />
+        const isAuthError = error.toLowerCase().includes('auth') || error.toLowerCase().includes('login')
+        const subtitle = isAuthError ? "Veuillez vous connecter pour continuer" : error
+        return <EmptyState title="Error" subtitle={subtitle} />
     }
 
     // Empty state

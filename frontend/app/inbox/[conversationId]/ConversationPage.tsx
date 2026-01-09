@@ -11,6 +11,10 @@ import { formatDateLabel } from "@/lib/dates"
 import { useChatWebSocket } from "@/lib/useChatWebSocket"
 import { MessageItem } from "@/components/inbox/MessageItem"
 import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
+import Heading from "@/components/Heading"
+import { ConversationSkeleton } from "@/components/inbox/ConversationSkeleton"
+import useLoginModal from "@/lib/useLoginModal"
 
 
 interface Props {
@@ -23,13 +27,27 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [conversation, setConversation] = useState<ConversationType | null>(null)
     const [messages, setMessages] = useState<MessageType[]>([])
     const [loading, setLoading] = useState(true)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const [sending, setSending] = useState(false)
     const sendingRef = useRef(false)
-    
+    const router = useRouter()
+    const loginModal = useLoginModal()
+
+    // Check authentication status client-side only
+    useEffect(() => {
+        const token = localStorage.getItem("access")
+        setIsAuthenticated(!!token)
+        if (!token) {
+            toast("Veuillez vous connecter")
+            loginModal.onOpen()
+        }
+    }, [loginModal])
+
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
+    // Trier les messages
     const sortedMessages = useMemo(() => {
         return [...messages].sort(
             (a, b) =>
@@ -42,7 +60,7 @@ const ConversationPage = ({ conversationId }: Props) => {
         return sortedMessages.filter(m => m.isMine && !m.id.startsWith('temp-')).slice(-1)[0]
     }, [sortedMessages])
 
-    // Fetch conversation + messages 
+    // Charger conversation + messages 
     useEffect(() => { 
         const abortController = new AbortController()
         const fetchData = async () => { 
@@ -81,7 +99,7 @@ const ConversationPage = ({ conversationId }: Props) => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 
     }, [messages])   
     
-    // Send message
+    // Envoyer un message
     const sendMessage = async () => {
         if (!text.trim() || !conversation || sendingRef.current) return
         sendingRef.current = true
@@ -102,7 +120,6 @@ const ConversationPage = ({ conversationId }: Props) => {
         setText("")
 
         // ENVOI WEBSOCKET 
-        // if (wsRef.current?.readyState === WebSocket.OPEN) {
             if (wsRef.current?.readyState !== WebSocket.OPEN) {
                 setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
                 setText(originalText)
@@ -130,8 +147,21 @@ const ConversationPage = ({ conversationId }: Props) => {
         }
     }
 
+    if (isAuthenticated === null) {
+        // Still checking auth status
+        return null 
+    }
+
+    if (!isAuthenticated) {
+        return null
+    }
+
     if (loading) { 
-        return <div className="p-4">Loading conversation...</div> 
+        return (
+            <Container>
+                <ConversationSkeleton />
+            </Container>
+        )
     }
 
     if (!conversation) { 
@@ -141,6 +171,28 @@ const ConversationPage = ({ conversationId }: Props) => {
     return (
         <Container >
             <div className="flex flex-col h-full">
+
+                {/* HEADER */}
+                <div className="flex items-center gap-4 p-4 border-b bg-white sticky top-20 z-0">
+                    <img src={conversation.listing.images?.[0] ?? "/placeholder.png"} alt="Listing" className="w-14 h-14 rounded-lg object-cover" />
+
+                    <Heading 
+                        title={conversation.listing.title} 
+                        subtitle={
+                            conversation.listing.city_name
+                            ? `${conversation.listing.city_name} - ${conversation.listing.country_label}`
+                            : conversation.listing.country_label
+                        }
+                    />
+
+                    <div className="ml-auto">
+                        <Button 
+                            variant="default" 
+                            onClick={() => router.push(`/listing/${conversation.listing.id}`)}
+                            label="Voir l’annonce"
+                        />
+                    </div>
+                </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
@@ -162,10 +214,10 @@ const ConversationPage = ({ conversationId }: Props) => {
                             <div key={msg.id} className="flex flex-col">
                                 {/* Séparateur de date */}
                                 {showDateSeparator && (
-                                    <div className="w-full text-center my-4">
-                                    <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
-                                        {formatDateLabel(msg.created_at)}
-                                    </span>
+                                    <div className="w-full text-center my-4 sticky top-2 z-0">
+                                        <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                                            {formatDateLabel(msg.created_at)}
+                                        </span>
                                     </div>
                                 )}
 
@@ -183,7 +235,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t flex gap-2">
+                <div className="p-4 border-t bg-white flex items-center gap-3">
                     <input 
                         disabled={sending}
                         value={text}
@@ -194,11 +246,14 @@ const ConversationPage = ({ conversationId }: Props) => {
                                 sendMessage()
                             }
                         }}
-                        className="flex-1 border rounded-lg px-4 py-2 shadow-sm"
+                        className="flex-1 border rounded-lg px-4 py-2 shadow-sm bg-gray-100"
                         placeholder="Write a message..."
                         aria-label="Message input"
                     />
-                    <Button variant="default" label="Send" disabled={sending}
+                    <Button 
+                        variant="default" 
+                        label="Send" 
+                        disabled={sending}
                         onClick={sendMessage}
                         className="w-auto px-3 py-2 rounded-lg"
                     />
