@@ -10,6 +10,7 @@ import { isCancel } from "axios"
 import { formatDateLabel } from "@/lib/dates"
 import { useChatWebSocket } from "@/lib/useChatWebSocket"
 import { MessageItem } from "@/components/inbox/MessageItem"
+import toast from "react-hot-toast"
 
 
 interface Props {
@@ -37,7 +38,7 @@ const ConversationPage = ({ conversationId }: Props) => {
     }, [messages])
 
     const lastMyMessage = useMemo(() => {
-        return sortedMessages.filter(m => m.isMine).slice(-1)[0]
+        return sortedMessages.filter(m => m.isMine && !m.id.startsWith('temp-')).slice(-1)[0]
     }, [sortedMessages])
 
     // Fetch conversation + messages 
@@ -58,7 +59,6 @@ const ConversationPage = ({ conversationId }: Props) => {
                 setMessages(msgRes.data) 
             } catch (error: unknown) { 
                 if (isCancel(error)) {
-                    // Requête annulée, pas besoin de log
                     return;
                 }
                 console.error("Failed to load conversation", error)
@@ -85,7 +85,6 @@ const ConversationPage = ({ conversationId }: Props) => {
         setSending(true)
 
         const optimisticMessage: MessageType = {
-            // id: `temp-${Date.now()}`, // ID temporaire
             id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, // ID temporaire unique
             content: text,
             created_at: new Date().toISOString(),
@@ -111,14 +110,14 @@ const ConversationPage = ({ conversationId }: Props) => {
                 console.error("Failed to send message:", err)
                 setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
                 // Add toast notification or error state
-                alert("Failed to send message. Please try again.")
+                toast("Failed to send message. Please try again.")
                 setSending(false)
             }
         } else {
             // Rollback optimistic message or show error
             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
             console.error("WebSocket not connected")
-            alert("Not connected. Please check your connection.")
+            toast("Not connected. Please check your connection.")
             setSending(false)
         }
     }

@@ -81,11 +81,13 @@ class MessageCreateView(APIView):
             sender=request.user,
             content=content.strip()
         )
+        conversation.save(update_fields=["updated_at"])
 
         # Sécuriser les UUID et tous les champs requis
         safe_message = build_safe_message(message, conversation.id)
 
         # Diffuser via WebSocket
+        logger = logging.getLogger(__name__)
         try: 
             layer = get_channel_layer() 
             if layer: 
@@ -95,9 +97,9 @@ class MessageCreateView(APIView):
                         "message": safe_message,
                     } 
                 )
-        except Exception as e:
+        except Exception:
             # Log but don't fail the request - message is already saved
-            logging.getLogger(__name__).warning(f"WebSocket broadcast failed: {e}")
+            logging.warning("WebSocket broadcast failed", exc_info=True)
         
         return Response(MessageSerializer(message, context={"request": request}).data)
 
@@ -123,9 +125,13 @@ class ConversationMessagesView(APIView):
         )
 
         conversation.messages.filter( 
-             is_read=False 
-         ).exclude(sender=request.user).update(is_read=True)
+            is_read=False 
+        ).exclude(sender=request.user).update(is_read=True)
 
+        if not unread_messages:
+            messages = conversation.messages.all()
+            return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
+        
         # Diffuser via WebSocket
         try: 
             layer = get_channel_layer()
@@ -137,8 +143,8 @@ class ConversationMessagesView(APIView):
                         "message_ids": [str(mid) for mid in unread_messages],
                     }
                 )
-        except Exception as e:
-            logging.getLogger(__name__).warning(f"WebSocket read_receipt broadcast failed: {e}")
+        except Exception:
+            logging.warning(f"WebSocket read_receipt broadcast failed", exc_info=True)
 
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
