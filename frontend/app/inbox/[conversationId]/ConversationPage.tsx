@@ -13,6 +13,8 @@ import { MessageItem } from "@/components/inbox/MessageItem"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import Heading from "@/components/Heading"
+import { ConversationSkeleton } from "@/components/inbox/ConversationSkeleton"
+import useLoginModal from "@/lib/useLoginModal"
 
 
 interface Props {
@@ -30,7 +32,9 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [sending, setSending] = useState(false)
     const sendingRef = useRef(false)
     const router = useRouter()
-    
+    const loginModal = useLoginModal()
+    const access = typeof window !== "undefined" ? localStorage.getItem("access") : null
+
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
     // Trier les messages
@@ -134,8 +138,18 @@ const ConversationPage = ({ conversationId }: Props) => {
         }
     }
 
+    if (!access) { 
+        toast("Veuillez vous connectez")
+        loginModal.onOpen() 
+        return null 
+    }
+
     if (loading) { 
-        return <div className="p-4">Loading conversation...</div> 
+        return (
+            <Container>
+                <ConversationSkeleton />
+            </Container>
+        )
     }
 
     if (!conversation) { 
@@ -147,7 +161,7 @@ const ConversationPage = ({ conversationId }: Props) => {
             <div className="flex flex-col h-full">
 
                 {/* HEADER */}
-                <div className="flex items-center gap-4 p-4 border-b bg-white sticky top-20 z-10 shadow-sm">
+                <div className="flex items-center gap-4 p-4 border-b bg-white sticky top-20 z-0">
                     <img src={conversation.listing.images[0] ?? "/placeholder.png"} alt="Listing" className="w-14 h-14 rounded-lg object-cover" />
 
                     <Heading 

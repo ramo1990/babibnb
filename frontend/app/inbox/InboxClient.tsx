@@ -69,7 +69,7 @@ const InboxClient = () => {
 
     // Error state
     if (error) {
-        return <EmptyState title="Error" subtitle={error} />
+        return <EmptyState title="Error" subtitle="Veuillez vous connectez pour continuer" />
     }
 
     // Empty state
