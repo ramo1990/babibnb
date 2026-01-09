@@ -30,6 +30,10 @@ const useAuthStore = create<AuthStore>((set) => ({
     try {
       const user = await getCurrentUser()
       set({ currentUser: user }) 
+
+      if (typeof window !== "undefined" && user?.id) { 
+        localStorage.setItem("user_id", user.id) 
+      }
     } catch (error) {
       console.error("Erreur lors du chargement de l'utilisateur:", error)
       set({ currentUser: null })

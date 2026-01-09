@@ -2,6 +2,8 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+
+from chat.utils import build_safe_message
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from listing.models import Listing
@@ -79,26 +81,25 @@ class MessageCreateView(APIView):
             sender=request.user,
             content=content.strip()
         )
+        conversation.save(update_fields=["updated_at"])
 
-        # Mise à jour updated_at
-        conversation.save()
+        # Sécuriser les UUID et tous les champs requis
+        safe_message = build_safe_message(message, conversation.id)
 
-        # Diffusion WebSocket 
+        # Diffuser via WebSocket
+        logger = logging.getLogger(__name__)
         try: 
             layer = get_channel_layer() 
             if layer: 
                 async_to_sync(layer.group_send)( 
-                    f"chat_{conversation.id}", { 
+                    f"chat_{conversation.id!s}", { 
                         "type": "chat_message", 
-                        "id": str(message.id), 
-                        "message": message.content, 
-                        "sender": str(message.sender.id), 
-                        "created_at": message.created_at.isoformat(), 
+                        "message": safe_message,
                     } 
                 )
-        except Exception as e:
+        except Exception:
             # Log but don't fail the request - message is already saved
-            logging.getLogger(__name__).warning(f"WebSocket broadcast failed: {e}")
+            logger.warning("WebSocket broadcast failed", exc_info=True)
         
         return Response(MessageSerializer(message, context={"request": request}).data)
 
@@ -117,10 +118,34 @@ class ConversationMessagesView(APIView):
             )
         
         # Marquer les messages de l'autre utilisateur comme lus 
+        unread_messages = list(
+            conversation.messages.filter( 
+                is_read=False 
+            ).exclude(sender=request.user).values_list("id", flat=True)
+        )
+
         conversation.messages.filter( 
             is_read=False 
         ).exclude(sender=request.user).update(is_read=True)
+
+        if not unread_messages:
+            messages = conversation.messages.all()
+            return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
         
+        # Diffuser via WebSocket
+        try: 
+            layer = get_channel_layer()
+            if layer:
+                async_to_sync(layer.group_send)(
+                    f"chat_{conversation.id!s}",
+                    {
+                        "type": "read_receipt",
+                        "message_ids": [str(mid) for mid in unread_messages],
+                    }
+                )
+        except Exception:
+            logging.warning("WebSocket read_receipt broadcast failed", exc_info=True)
+
         messages = conversation.messages.all()
         return Response(MessageSerializer(messages, many=True, context={"request": request}).data)
 
