@@ -1,5 +1,7 @@
 import Avatar from "@/components/Avatar"
 import { MessageType, ConversationType } from "@/lib/types"
+import { Check, CheckCheck } from 'lucide-react';
+
 
 interface Props {
   msg: MessageType
@@ -9,24 +11,25 @@ interface Props {
 }
 
 export const MessageItem = ({msg, isGrouped, isLastMyMessage, conversation}: Props) => {
-  const otherUser = conversation.isHost
-    ? conversation.guest
-    : conversation.host
+  const otherUser = conversation.isHost ? conversation.guest : conversation.host
+  const time = new Date(msg.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", })
 
   return (
-    <div className={`flex items-end gap-2 ${msg.isMine ? "justify-end" : "justify-start"}`}>
+    <div className={`flex w-full items-end gap-2 ${msg.isMine ? "justify-end" : "justify-start"}`}>
+
       {/* Avatar gauche */}
       {!msg.isMine && !isGrouped && (
-        <Avatar src={otherUser.image ?? ""} />
+        <div className="shrink-0">
+          <Avatar src={otherUser.image ?? ""} />
+        </div>
       )}
 
-      {/* Bulle */}
-      <div className="flex flex-col max-w-[70%]">
+      {/* Bulle + heure + statut */}
+      <div className="flex flex-col max-w-[75%]">
         <div
-          className={`px-4 py-2 text-sm shadow-sm ${
+          className={`px-4 py-2 text-sm leading-relaxed shadow-sm transition-all ${
             msg.isMine
-              ? "bg-blue-400 text-white ml-auto self-end"
-              : "bg-gray-100 text-gray-800 self-start"
+              ? "bg-blue-400 text-white" : "bg-white text-gray-800 border border-gray-200"
           } ${
             isGrouped
               ? "rounded-2xl"
@@ -40,28 +43,26 @@ export const MessageItem = ({msg, isGrouped, isLastMyMessage, conversation}: Pro
 
         {/* Heure */}
         {!isGrouped && (
-          <span
-            className={`text-[10px] text-gray-400 mt-1 ${
-              msg.isMine ? "self-end" : "self-start"
+          <div
+            className={`text-[11px] mt-1 ${
+              msg.isMine ? "text-right text-gray-300" : "text-left text-gray-400"
             }`}
           >
-            {new Date(msg.created_at).toLocaleTimeString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+            {time}
+          </div>
         )}
 
-        {/* Statut TODO: utiliser les symboles */}
+        {/* Statut (Vu / Envoyé) TODO: utiliser les symboles */}
         {msg.isMine && isLastMyMessage && (
-          <span className="text-[10px] text-gray-400 mt-1 self-end">
-            {msg.isRead ? "Vu" : "Envoyé"}
-          </span>
+          <div className="text-[11px] text-gray-300 mt-0.5 self-end">
+            {msg.isRead ? <CheckCheck /> : <Check />}
+          </div>
         )}
       </div>
 
       {/* Avatar droite */}
       {msg.isMine && !isGrouped && (
+        <div className="shrink-0">
         <Avatar
           src={
             conversation.isHost
@@ -69,6 +70,7 @@ export const MessageItem = ({msg, isGrouped, isLastMyMessage, conversation}: Pro
               : conversation.guest.image
           }
         />
+      </div>
       )}
     </div>
   )
