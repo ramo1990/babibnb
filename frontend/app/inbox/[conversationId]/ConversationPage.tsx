@@ -63,6 +63,7 @@ const ConversationPage = ({ conversationId }: Props) => {
                     return;
                 }
                 console.error("Failed to load conversation", error)
+                toast.error("Failed to load conversation. Please try again.")
             } finally { 
                 if (!abortController.signal.aborted) {
                     setLoading(false)
@@ -97,32 +98,35 @@ const ConversationPage = ({ conversationId }: Props) => {
 
         // affichage immédiat
         setMessages(prev => [...prev, optimisticMessage])
+        const originalText = text
         setText("")
 
         // ENVOI WEBSOCKET 
         // if (wsRef.current?.readyState === WebSocket.OPEN) {
-        try {
             if (wsRef.current?.readyState !== WebSocket.OPEN) {
-            setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
-            console.error("WebSocket not connected")
-            toast("Not connected. Please check your connection.")
-            return
+                setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+                setText(originalText)
+                console.error("WebSocket not connected")
+                toast.error("Not connected. Please check your connection.")
+                sendingRef.current = false
+                setSending(false)
+                return
             }
-                try {
-                    wsRef.current.send(JSON.stringify({ 
-                        type: "send_message", 
-                        content: optimisticMessage.content, 
-                        client_id: optimisticMessage.id 
-                    }))
-                } catch (err) {
-                    console.error("Failed to send message:", err)
-                    setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
-                    // Add toast notification or error state
-                    toast("Failed to send message. Please try again.")
-                }
-        } finally {
-            sendingRef.current = false
-            setSending(false)
+            
+            try {
+                wsRef.current.send(JSON.stringify({ 
+                    type: "send_message", 
+                    content: optimisticMessage.content, 
+                    client_id: optimisticMessage.id 
+                }))
+            } catch (err) {
+                console.error("Failed to send message:", err)
+                setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+                setText(originalText) // Restore text on failure
+                toast.error("Failed to send message. Please try again.")
+            } finally {
+                sendingRef.current = false
+                setSending(false)
         }
     }
 
