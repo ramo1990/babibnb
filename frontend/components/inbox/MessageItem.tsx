@@ -52,10 +52,10 @@ export const MessageItem = ({msg, isGrouped, isLastMyMessage, conversation}: Pro
           </div>
         )}
 
-        {/* Statut (Vu / Envoyé) TODO: utiliser les symboles */}
+        {/* Statut (Vu / Envoyé) */}
         {msg.isMine && isLastMyMessage && (
           <div className="text-[11px] text-gray-300 mt-0.5 self-end">
-            {msg.isRead ? <CheckCheck /> : <Check />}
+            {msg.isRead ? <CheckCheck size={14} /> : <Check size={14} />}
           </div>
         )}
       </div>

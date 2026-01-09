@@ -27,13 +27,23 @@ const ConversationPage = ({ conversationId }: Props) => {
     const [conversation, setConversation] = useState<ConversationType | null>(null)
     const [messages, setMessages] = useState<MessageType[]>([])
     const [loading, setLoading] = useState(true)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
     const [text, setText] = useState("")
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const [sending, setSending] = useState(false)
     const sendingRef = useRef(false)
     const router = useRouter()
     const loginModal = useLoginModal()
-    const access = typeof window !== "undefined" ? localStorage.getItem("access") : null
+
+    // Check authentication status client-side only
+    useEffect(() => {
+        const token = localStorage.getItem("access")
+        setIsAuthenticated(!!token)
+        if (!token) {
+            toast("Veuillez vous connecter")
+            loginModal.onOpen()
+        }
+    }, [loginModal])
 
     const wsRef = useChatWebSocket({ conversationId, setMessages })
 
@@ -110,7 +120,6 @@ const ConversationPage = ({ conversationId }: Props) => {
         setText("")
 
         // ENVOI WEBSOCKET 
-        // if (wsRef.current?.readyState === WebSocket.OPEN) {
             if (wsRef.current?.readyState !== WebSocket.OPEN) {
                 setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
                 setText(originalText)
@@ -138,10 +147,13 @@ const ConversationPage = ({ conversationId }: Props) => {
         }
     }
 
-    if (!access) { 
-        toast("Veuillez vous connectez")
-        loginModal.onOpen() 
+    if (isAuthenticated === null) {
+        // Still checking auth status
         return null 
+    }
+
+    if (!isAuthenticated) {
+        return null
     }
 
     if (loading) { 
@@ -162,7 +174,7 @@ const ConversationPage = ({ conversationId }: Props) => {
 
                 {/* HEADER */}
                 <div className="flex items-center gap-4 p-4 border-b bg-white sticky top-20 z-0">
-                    <img src={conversation.listing.images[0] ?? "/placeholder.png"} alt="Listing" className="w-14 h-14 rounded-lg object-cover" />
+                    <img src={conversation.listing.images?.[0] ?? "/placeholder.png"} alt="Listing" className="w-14 h-14 rounded-lg object-cover" />
 
                     <Heading 
                         title={conversation.listing.title} 
